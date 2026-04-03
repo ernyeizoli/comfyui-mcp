@@ -108,7 +108,7 @@ interface ExpandResult {
  * Handles nested components (component inside component) iteratively up to a
  * maximum depth of 10.
  */
-export function expandComponents(ui: UiWorkflow): ExpandResult {
+export function expandComponents(ui: UiWorkflow, objectInfo?: ObjectInfo): ExpandResult {
   const subgraphs = ui.definitions?.subgraphs;
   if (!subgraphs || subgraphs.length === 0) {
     return { expanded: ui, warnings: [] };
@@ -160,6 +160,7 @@ export function expandComponents(ui: UiWorkflow): ExpandResult {
         links,
         nextNodeId,
         nextLinkId,
+        objectInfo,
       );
       nodes = result.nodes;
       links = result.links;
@@ -167,6 +168,14 @@ export function expandComponents(ui: UiWorkflow): ExpandResult {
       nextLinkId = result.nextLinkId;
       warnings.push(...result.warnings);
     }
+  }
+
+  // Warn if we hit the depth cap with unexpanded components remaining
+  const remaining = nodes.filter((n) => sgMap.has(n.type));
+  if (remaining.length > 0) {
+    warnings.push(
+      `Component expansion hit depth limit (${MAX_DEPTH}). ${remaining.length} component(s) were not expanded.`,
+    );
   }
 
   const expanded: UiWorkflow = {
@@ -187,6 +196,7 @@ function expandSingleComponent(
   outerLinks: UiLink[],
   nextNodeId: number,
   nextLinkId: number,
+  objectInfo?: ObjectInfo,
 ): {
   nodes: UiNode[];
   links: UiLink[];
@@ -353,13 +363,18 @@ function expandSingleComponent(
         linksToAdd.push([newId, remappedSrc, innerSrcSlot, tgtNodeId, tgtSlot, linkType]);
 
         // Update the outer target node's input to reference the new link
-        const tgtNode = outerNodes.find((n) => n.id === tgtNodeId);
-        if (tgtNode?.inputs) {
-          for (const inp of tgtNode.inputs) {
-            if (inp.link === outerLinkId) {
-              inp.link = newId;
+        // Clone the node to avoid mutating shared references across iterations
+        const tgtIdx = outerNodes.findIndex((n) => n.id === tgtNodeId);
+        if (tgtIdx !== -1) {
+          const tgtNode: UiNode = JSON.parse(JSON.stringify(outerNodes[tgtIdx]));
+          if (tgtNode.inputs) {
+            for (const inp of tgtNode.inputs) {
+              if (inp.link === outerLinkId) {
+                inp.link = newId;
+              }
             }
           }
+          outerNodes[tgtIdx] = tgtNode;
         }
 
         linksToRemove.add(outerLinkId);
@@ -368,12 +383,21 @@ function expandSingleComponent(
   }
 
   // ── 8. Apply proxy widget values ────────────────────────────────────────
-  const proxyWidgets: [string, string][] =
-    (compNode.properties?.proxyWidgets as [string, string][]) ?? [];
+  const rawProxyWidgets = compNode.properties?.proxyWidgets;
+  const proxyWidgets: [string, string][] = Array.isArray(rawProxyWidgets)
+    ? (rawProxyWidgets as [string, string][])
+    : [];
   const widgetValues = compNode.widgets_values ?? [];
 
   for (let i = 0; i < proxyWidgets.length; i++) {
-    const [innerNodeIdStr, widgetName] = proxyWidgets[i];
+    const entry = proxyWidgets[i];
+    if (!Array.isArray(entry) || entry.length < 2) {
+      warnings.push(
+        `Component "${sg.name}": malformed proxyWidgets entry at index ${i} — skipping.`,
+      );
+      continue;
+    }
+    const [innerNodeIdStr, widgetName] = entry;
     const value = i < widgetValues.length ? widgetValues[i] : undefined;
     if (value === undefined || value === null) continue;
 
@@ -384,8 +408,8 @@ function expandSingleComponent(
     const targetNode = newNodes.find((n) => n.id === remapped);
     if (!targetNode) continue;
 
-    // Find the widget position in widgets_values by counting widget-type inputs
-    const widgetIdx = findWidgetIndex(targetNode, widgetName);
+    // Find the widget position in widgets_values using objectInfo for accuracy
+    const widgetIdx = findWidgetIndex(targetNode, widgetName, objectInfo);
     if (widgetIdx != null) {
       if (!targetNode.widgets_values) targetNode.widgets_values = [];
       targetNode.widgets_values[widgetIdx] = value;
@@ -425,7 +449,7 @@ function expandSingleComponent(
           (inp) => inp.link === link[0] && inp.widget,
         );
         if (tgtInput) {
-          const idx = findWidgetIndex(tgtNode, tgtInput.widget!.name);
+          const idx = findWidgetIndex(tgtNode, tgtInput.widget!.name, objectInfo);
           if (idx != null) {
             if (!tgtNode.widgets_values) tgtNode.widgets_values = [];
             tgtNode.widgets_values[idx] = primValue;
@@ -459,26 +483,42 @@ function expandSingleComponent(
 
 /**
  * Find the widgets_values index for a named widget on a UI node.
- * Counts widget-type inputs (those with a `widget` property) in order.
+ * When objectInfo is available, uses the node definition to determine the
+ * correct widget ordering (handles all widgets, not just converted-to-input ones).
+ * Falls back to scanning inputs with `widget` property if objectInfo is unavailable.
  */
-function findWidgetIndex(node: UiNode, widgetName: string): number | null {
-  if (!node.inputs) return null;
-
-  // Widget inputs on a UiNode are entries in `inputs[]` that have a `widget` property.
-  // However, not all widgets appear in `inputs[]` — some are only in `widgets_values`.
-  // We count only the widget-inputs that appear in the node's inputs array,
-  // matching by the `widget.name` field.
-  let idx = 0;
-  for (const inp of node.inputs) {
-    if (inp.widget) {
-      if (inp.widget.name === widgetName) return idx;
-      idx++;
+function findWidgetIndex(
+  node: UiNode,
+  widgetName: string,
+  objectInfo?: ObjectInfo,
+): number | null {
+  // Primary path: use objectInfo for accurate widget ordering
+  if (objectInfo) {
+    const def = objectInfo[node.type];
+    if (def) {
+      const orderedNames = getOrderedInputNames(def);
+      let idx = 0;
+      for (const name of orderedNames) {
+        if (!isWidgetInput(name, def)) continue;
+        if (name === widgetName) return idx;
+        idx++;
+        // Skip phantom control_after_generate widget slot
+        if (hasControlAfterGenerate(name, def)) idx++;
+      }
     }
   }
 
-  // Fallback: if widget is not in inputs[] (pure widget, no link slot),
-  // it may be at a fixed position. Search widgets_values if we can match by name.
-  // For now, return null — the widget is likely at its default value.
+  // Fallback: scan inputs that have a `widget` property (converted-to-input widgets)
+  if (node.inputs) {
+    let idx = 0;
+    for (const inp of node.inputs) {
+      if (inp.widget) {
+        if (inp.widget.name === widgetName) return idx;
+        idx++;
+      }
+    }
+  }
+
   return null;
 }
 
@@ -491,7 +531,7 @@ export function convertUiToApi(
   objectInfo: ObjectInfo,
 ): ConversionResult {
   // Expand component/subgraph nodes before conversion
-  const { expanded, warnings: expandWarnings } = expandComponents(ui);
+  const { expanded, warnings: expandWarnings } = expandComponents(ui, objectInfo);
 
   const workflow: WorkflowJSON = {};
   const warnings: string[] = [...expandWarnings];
