@@ -1,0 +1,4 @@
+interface:
+  display_name: "PBV Comfy Batch Generation"
+  short_description: "Write mixed-model PBV batch JSON"
+  default_prompt: "Use $pbv-comfy-batch-generation to create pasteable PBV Batch Generation JSON for Comfy."

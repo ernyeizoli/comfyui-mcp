@@ -368,6 +368,25 @@ PyTorch and CUDA version incompatibility, usually after:
 - **Path confusion**: Desktop separates user data from application files
 - **Custom node pip installs**: Desktop's embedded Python may not be on PATH — install within the venv
 
+## Restarting Local Portable ComfyUI
+
+For the local Windows portable setup, restart ComfyUI from the repo helper:
+
+```powershell
+C:\Users\zoltan.ernyei\dev\Comfy-mcp\comfy-apps-repo\start.ps1 -Restart -Force
+```
+
+Verify readiness:
+
+```powershell
+Invoke-WebRequest -Uri http://127.0.0.1:8188/system_stats -UseBasicParsing -TimeoutSec 5
+Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -eq 8188 }
+```
+
+`/system_stats` returning HTTP `200` means the ComfyUI API is ready. If MCP calls fail with `Transport closed` after ComfyUI restarts, the stdio MCP process is stale: stop `node.exe` processes whose command line contains `Comfy-mcp/dist/index.js`, then run `/mcp` in Claude Code and reconnect or restart the `comfyui` server.
+
+Helper-script logs are under `C:\Users\zoltan.ernyei\Comfy_portable\ComfyUI_windows_portable\logs\`. During manual recovery, redirected logs may be in `C:\tmp\comfyui-stdout.log` and `C:\tmp\comfyui-stderr.log`.
+
 ## Error-Specific Debugging Commands
 
 ### Workflow Failed — Get Details
@@ -421,4 +440,5 @@ list_local_models(model_type="controlnet")        # Installed ControlNets
 | Black images, no error | Check denoise > 0, cfg > 0, steps > 0, prompt not empty |
 | Image looks garbled/noisy | Wrong model+VAE combo, wrong sampler settings |
 | `Connection refused` on port 8188 | ComfyUI not running, or using Desktop (port 8000) |
+| `Transport closed` after restart | Restart/reconnect the MCP server with `/mcp`; stop stale `Comfy-mcp/dist/index.js` Node processes if needed |
 | `Prompt outputs failed validation` | Node inputs don't match schema — check `get_node_info` |

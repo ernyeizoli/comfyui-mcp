@@ -371,6 +371,33 @@ Generates a comprehensive skill file documenting every node, its inputs/outputs,
 > Start ComfyUI back up
 ```
 
+### Local Windows restart
+
+For the local portable ComfyUI setup in this repo, restart ComfyUI with the helper script:
+
+```powershell
+C:\Users\zoltan.ernyei\dev\Comfy-mcp\comfy-apps-repo\start.ps1 -Restart -Force
+```
+
+Then verify that ComfyUI is listening on `8188`:
+
+```powershell
+Invoke-WebRequest -Uri http://127.0.0.1:8188/system_stats -UseBasicParsing -TimeoutSec 5
+Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -eq 8188 }
+```
+
+The API is ready when `/system_stats` returns HTTP `200`. If the MCP tool transport closes during a restart, kill any stale `Comfy-mcp/dist/index.js` Node processes and reconnect the MCP client:
+
+```powershell
+Get-CimInstance Win32_Process |
+  Where-Object { $_.Name -eq "node.exe" -and $_.CommandLine -like "*Comfy-mcp/dist/index.js*" } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+In Claude Code, run `/mcp` and reconnect or restart the `comfyui` server. If the client does not respawn the MCP server, restart the Codex/Claude app session.
+
+Helper-script logs are written under `C:\Users\zoltan.ernyei\Comfy_portable\ComfyUI_windows_portable\logs\`. If ComfyUI was launched manually with redirected output during recovery, check `C:\tmp\comfyui-stdout.log` and `C:\tmp\comfyui-stderr.log`.
+
 ---
 
 ## Configuration
@@ -553,6 +580,9 @@ plugin/
 
 **"ComfyUI not detected on ports 8188, 8000"**
 Make sure ComfyUI is running. The Desktop app uses port 8000 by default; the CLI uses 8188. Set `COMFYUI_PORT` if you're using a custom port.
+
+**"Transport closed" after restarting ComfyUI**
+ComfyUI may be healthy while the MCP stdio server is stale. Verify `http://127.0.0.1:8188/system_stats` returns `200`, stop stale `node.exe .../Comfy-mcp/dist/index.js` processes, then run `/mcp` in Claude Code and reconnect the `comfyui` server.
 
 **"COMFYUI_PATH is not configured"**
 The auto-detection couldn't find your ComfyUI data directory. Set `COMFYUI_PATH` to the directory containing your `models/` folder (e.g., `~/Documents/ComfyUI`).

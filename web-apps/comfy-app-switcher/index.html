@@ -1,0 +1,5162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PBV Local AI Center</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, Segoe UI, system-ui, sans-serif;
+      background: #101114;
+      color: #f5f5f6;
+      --panel: #181a1e;
+      --panel-2: #202228;
+      --line: #30333b;
+      --muted: #a7acb8;
+      --text: #f5f5f6;
+      --blue: #3b82d6;
+      --blue-2: #7bb5ff;
+      --green: #5ebc8b;
+      --red: #e06d6d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101114;
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #242833;
+      color: var(--text);
+      min-height: 38px;
+      padding: 8px 11px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    button:hover {
+      border-color: #596070;
+      background: #2a2f3b;
+    }
+
+    button.primary {
+      border-color: #397aca;
+      background: var(--blue);
+    }
+
+    button.primary:hover {
+      background: #3377c8;
+    }
+
+    button.danger {
+      border-color: #7a3940;
+      background: #351b22;
+      color: #ffd7dc;
+    }
+
+    button.danger:hover {
+      border-color: #b44f59;
+      background: #452129;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #3e4350;
+      border-radius: 6px;
+      background: #252933;
+      color: var(--text);
+      padding: 9px 10px;
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.42;
+    }
+
+    a {
+      color: var(--blue-2);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      min-height: 720px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #14161a;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .brandline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .view-select {
+      width: auto;
+      min-width: 128px;
+      min-height: 34px;
+      padding: 6px 32px 6px 10px;
+      background: #20242b;
+      border-color: #3a4050;
+      color: #eef1f6;
+      font-weight: 650;
+    }
+
+    .statusbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      justify-content: end;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #1b1e24;
+      color: #d8dbe2;
+      min-height: 28px;
+      padding: 4px 9px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .dot.busy {
+      background: #e6b15e;
+    }
+
+    .dot.error {
+      background: var(--red);
+    }
+
+    .app-nav {
+      display: flex;
+      align-items: end;
+      gap: 4px;
+      min-width: 0;
+      border-bottom: 1px solid var(--line);
+      background: #14161a;
+      padding: 7px 8px 0;
+      overflow-x: auto;
+    }
+
+    .tab-strip {
+      display: flex;
+      align-items: end;
+      gap: 4px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .tab {
+      display: inline-grid;
+      grid-template-columns: minmax(42px, 1fr) auto;
+      align-items: center;
+      gap: 6px;
+      max-width: 178px;
+      min-width: 112px;
+      border: 1px solid #2a2e38;
+      border-bottom: 0;
+      border-radius: 7px 7px 0 0;
+      background: #1a1d23;
+      padding: 8px 7px 8px 10px;
+      min-height: 38px;
+      color: #d7dbe4;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tab:hover {
+      background: #20242b;
+      text-decoration: none;
+    }
+
+    .tab.active {
+      border-color: #40516d;
+      background: #263248;
+      color: #fff;
+    }
+
+    .tab-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .tab-close {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      min-height: 22px;
+      padding: 0;
+      border-radius: 5px;
+      border-color: transparent;
+      background: transparent;
+      color: #b8beca;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .tab-close:hover {
+      border-color: #505764;
+      background: #2d3340;
+      color: #fff;
+    }
+
+    .inventory-launch {
+      min-width: 112px;
+      min-height: 38px;
+      border-radius: 7px 7px 0 0;
+      border-bottom: 0;
+      background: #20242b;
+    }
+
+    .inventory-launch.active {
+      border-color: #40516d;
+      background: #263248;
+    }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 1px;
+      background: #101114;
+    }
+
+    .workspace.media-active {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .content {
+      min-height: 0;
+      background: #101114;
+    }
+
+    .pane {
+      display: none;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .pane.active {
+      display: grid;
+    }
+
+    .frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #101114;
+    }
+
+    .wan {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(360px, 480px) 1fr;
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .panel,
+    .result {
+      min-height: 0;
+      background: var(--panel);
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .panel {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .group {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #d5d8df;
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .run-control {
+      display: inline-grid;
+      grid-template-columns: auto 72px;
+      align-items: center;
+      gap: 7px;
+      color: #d5d8df;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .run-control input {
+      min-height: 38px;
+      padding: 8px 9px;
+    }
+
+    .result {
+      display: grid;
+      grid-template-rows: auto minmax(240px, 1fr) auto;
+      gap: 12px;
+    }
+
+    .preview {
+      display: grid;
+      place-items: center;
+      min-height: 260px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b0c0f;
+      overflow: hidden;
+    }
+
+    .preview video,
+    .preview img {
+      width: 100%;
+      height: 100%;
+      max-height: 68vh;
+      object-fit: contain;
+      background: #050506;
+    }
+
+    .placeholder {
+      color: #8f96a5;
+      text-align: center;
+      padding: 20px;
+    }
+
+    pre {
+      margin: 0;
+      min-height: 130px;
+      max-height: 230px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b0c0f;
+      color: #d7dae1;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .queue-panel {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto minmax(180px, 1fr) minmax(180px, .9fr);
+      gap: 10px;
+      padding: 14px;
+      border-left: 1px solid var(--line);
+      background: #15171c;
+      overflow: hidden;
+    }
+
+    .queue-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .queue-head h2 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .queue-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .queue-actions button,
+    .queue-item button {
+      min-height: 30px;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+
+    .queue-list {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .queue-item {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1c1f25;
+      padding: 10px;
+    }
+
+    .queue-item.running {
+      border-color: #846a32;
+      background: #242117;
+    }
+
+    .queue-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: #d8dbe2;
+    }
+
+    .queue-id {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #9fa7b5;
+      font-family: Consolas, ui-monospace, monospace;
+      font-size: 11px;
+    }
+
+    .queue-meta {
+      color: #c6cad3;
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .queue-empty {
+      display: grid;
+      place-items: center;
+      min-height: 120px;
+      color: #8f96a5;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      text-align: center;
+      padding: 16px;
+      font-size: 13px;
+    }
+
+    .terminal-panel {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+    }
+
+    .terminal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-head h2 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .terminal-output {
+      min-height: 0;
+      max-height: none;
+      overflow: auto;
+      font-family: Consolas, ui-monospace, monospace;
+      font-size: 11px;
+      background: #050608;
+      color: #d8e2d2;
+      border-color: #28313b;
+    }
+
+    .models {
+      min-height: 0;
+      padding: 16px;
+      overflow: auto;
+      background: var(--panel);
+    }
+
+    .media-view {
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      padding: 16px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+
+    .media-subview {
+      min-height: 0;
+      display: grid;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .media-library-view {
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+    }
+
+    .media-toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(320px, 620px);
+      gap: 14px;
+      align-items: end;
+    }
+
+    .media-title {
+      display: grid;
+      gap: 5px;
+    }
+
+    .media-title h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .media-title p,
+    .media-count {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .media-controls {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) 120px auto auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .media-root-controls {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .media-root-controls input[type="text"] {
+      min-width: 0;
+    }
+
+    .inline-check {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      background: var(--panel-2);
+    }
+
+    .inline-check input {
+      width: 15px;
+      height: 15px;
+      margin: 0;
+    }
+
+    .output-root-state {
+      grid-column: 1 / -1;
+    }
+
+    .output-root-state.error {
+      color: #ffb6aa;
+    }
+
+    .media-folderbar {
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .media-folderbar button {
+      min-height: 30px;
+      padding: 5px 9px;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .media-folderbar button.active {
+      border-color: #47735d;
+      color: #d8f2e4;
+      background: #22372d;
+    }
+
+    .media-grid {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      align-content: start;
+      gap: 12px;
+      padding-right: 2px;
+    }
+
+    .media-card {
+      display: grid;
+      grid-template-rows: 150px auto auto;
+      gap: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1c1f25;
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .media-card.highlight {
+      border-color: var(--blue-2);
+      box-shadow: 0 0 0 1px rgba(123, 181, 255, .38);
+    }
+
+    .media-thumb {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid #262a33;
+      border-radius: 6px;
+      background: #07080a;
+      color: #8992a1;
+      font-size: 12px;
+    }
+
+    .media-thumb img,
+    .media-thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #050506;
+    }
+
+    .media-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      color: #f0f2f6;
+    }
+
+    .media-meta {
+      min-width: 0;
+      color: #aeb5c2;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .media-card-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .media-card-actions a,
+    .media-card-actions button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #242833;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    .media-card-actions a:hover,
+    .media-card-actions button:hover {
+      border-color: #596070;
+      background: #2a2f3b;
+      text-decoration: none;
+    }
+
+    .media-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-height: 38px;
+    }
+
+    .media-empty {
+      display: grid;
+      place-items: center;
+      min-height: 240px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: #8f96a5;
+      text-align: center;
+      padding: 20px;
+      grid-column: 1 / -1;
+    }
+
+    .health-view {
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .health-head {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .health-actions {
+      display: flex;
+      justify-content: end;
+      gap: 8px;
+    }
+
+    .health-scroll {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      padding-right: 2px;
+    }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .health-metric,
+    .health-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1b1f26;
+      min-width: 0;
+    }
+
+    .health-metric {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      min-height: 112px;
+    }
+
+    .health-metric-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .health-label,
+    .health-detail,
+    .health-note {
+      color: #aeb5c2;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .health-value {
+      color: #f0f2f6;
+      font-size: 20px;
+      line-height: 1.1;
+      font-weight: 750;
+      overflow-wrap: anywhere;
+      text-align: right;
+    }
+
+    .health-bar {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #11141a;
+      border: 1px solid #2b303a;
+    }
+
+    .health-bar span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: #5da3ff;
+    }
+
+    .health-metric.warn .health-bar span,
+    .health-row.warn .health-bar span {
+      background: #d9ad4f;
+    }
+
+    .health-metric.error .health-bar span,
+    .health-row.error .health-bar span {
+      background: #e56c61;
+    }
+
+    .health-panels {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .health-panel {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .health-panel.wide {
+      grid-column: 1 / -1;
+    }
+
+    .health-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .health-panel h3 {
+      margin: 0;
+      color: #f0f2f6;
+      font-size: 14px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .health-list {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .health-row {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid #2a2f39;
+      border-radius: 7px;
+      background: #171a20;
+    }
+
+    .health-row-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: #edf0f4;
+      font-size: 13px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .health-empty {
+      min-height: 92px;
+      display: grid;
+      place-items: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: #8f96a5;
+      text-align: center;
+      padding: 14px;
+      font-size: 12px;
+    }
+
+    .health-kv {
+      display: grid;
+      grid-template-columns: 130px minmax(0, 1fr);
+      gap: 7px 10px;
+      align-items: start;
+      min-width: 0;
+      font-size: 12px;
+    }
+
+    .health-kv dt {
+      color: #8f96a5;
+    }
+
+    .health-kv dd {
+      margin: 0;
+      color: #dce1ea;
+      overflow-wrap: anywhere;
+    }
+
+    .issue-list {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .issue-row {
+      display: grid;
+      grid-template-columns: 76px 80px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      padding: 8px 10px;
+      border: 1px solid #2a2f39;
+      border-radius: 7px;
+      background: #171a20;
+      font-size: 12px;
+    }
+
+    .issue-level {
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .issue-row.error .issue-level {
+      color: #ff9b91;
+    }
+
+    .issue-row.warning .issue-level {
+      color: #ffd37f;
+    }
+
+    .issue-source {
+      color: #8f96a5;
+    }
+
+    .issue-message {
+      color: #dce1ea;
+      font-family: Consolas, ui-monospace, monospace;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .health-terminal-output {
+      min-height: 360px;
+      max-height: 520px;
+      white-space: pre-wrap;
+    }
+
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .model-card {
+      display: grid;
+      align-content: start;
+      gap: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1c1f25;
+      padding: 13px;
+      min-height: 150px;
+    }
+
+    .model-card.available {
+      border-color: #40516d;
+    }
+
+    .model-card.ready {
+      border-color: #38634f;
+    }
+
+    .model-card.missing {
+      border-color: #665233;
+    }
+
+    .model-card button {
+      justify-self: start;
+      min-height: 32px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .model-card h3 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .model-card p {
+      margin: 0;
+      color: #c3c8d2;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      min-height: 24px;
+      padding: 3px 8px;
+      font-size: 12px;
+      color: #d7dbe4;
+      background: #242833;
+      white-space: nowrap;
+    }
+
+    .tag.ready {
+      border-color: #47735d;
+      color: #cdebdc;
+    }
+
+    .tag.missing {
+      border-color: #745d35;
+      color: #f0d6a8;
+    }
+
+    .inline-check {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .inline-check input {
+      width: auto;
+      min-width: 18px;
+      min-height: 18px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        height: auto;
+        min-height: 100vh;
+      }
+
+      header {
+        grid-template-columns: 1fr;
+      }
+
+      .statusbar {
+        justify-content: start;
+      }
+
+      .app-nav {
+        align-items: stretch;
+      }
+
+      .tab-strip {
+        align-items: stretch;
+      }
+
+      .workspace,
+      .pane,
+      .wan {
+        min-height: auto;
+        height: auto;
+      }
+
+      .wan {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .media-toolbar,
+      .media-controls,
+      .media-root-controls,
+      .health-head,
+      .health-panels,
+      .health-kv,
+      .issue-row {
+        grid-template-columns: 1fr;
+      }
+
+      .media-view {
+        min-height: 760px;
+      }
+
+      .health-actions {
+        justify-content: start;
+      }
+
+      .queue-panel {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        max-height: 420px;
+      }
+
+      .terminal-panel {
+        min-height: 240px;
+      }
+
+      .frame {
+        min-height: 780px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brandline">
+        <h1>PBV Local AI Center</h1>
+        <select id="mainViewSelect" class="view-select" aria-label="Main view">
+          <option value="models" selected>Models</option>
+          <option value="media">Media</option>
+          <option value="system-health">System Health</option>
+        </select>
+      </div>
+      <div class="statusbar">
+        <span class="pill"><span id="comfyDot" class="dot"></span><span id="comfyState">Checking</span></span>
+        <span class="pill" id="queueState">Queue</span>
+        <button id="clearVram" title="Unload cached Comfy models">Clear VRAM</button>
+        <button id="restartComfy" class="danger" title="Restart Comfy on this host">Restart Comfy</button>
+        <a href="/" target="_blank">Comfy UI</a>
+      </div>
+    </header>
+
+    <nav class="app-nav" id="modelNav" aria-label="Open model apps">
+      <div class="tab-strip" id="tabStrip"></div>
+      <button class="inventory-launch" id="inventoryButton" type="button">+ Inventory</button>
+    </nav>
+
+    <main class="workspace" id="workspace">
+      <div class="content">
+        <section class="pane active" id="pane-z" aria-label="Z Image">
+          <iframe class="frame" src="/z-image-t2i" title="Z Image"></iframe>
+        </section>
+
+        <section class="pane" id="pane-ltx" aria-label="LTX 2.3">
+          <iframe class="frame" src="/ltx23-30s-i2v" title="LTX 2.3"></iframe>
+        </section>
+
+        <section class="pane" id="pane-trellis" aria-label="TRELLIS.2 3D">
+          <div class="wan">
+          <form class="panel" id="trellisForm">
+            <label>Source image
+              <input id="trellisSource" type="file" accept="image/png,image/jpeg,image/webp">
+            </label>
+
+            <div class="grid">
+              <label>Resolution mode
+                <select id="trellisResolution">
+                  <option value="512">512 fast</option>
+                  <option value="1024_cascade" selected>1024 cascade</option>
+                  <option value="1536_cascade">1536 cascade</option>
+                </select>
+              </label>
+              <label>VRAM mode
+                <select id="trellisVram">
+                  <option value="keep_loaded">Keep loaded</option>
+                  <option value="cpu_offload" selected>CPU offload</option>
+                  <option value="disk_offload">Disk offload</option>
+                </select>
+              </label>
+              <label>Attention
+                <select id="trellisAttention">
+                  <option value="sdpa" selected>SDPA</option>
+                  <option value="xformers">xFormers</option>
+                  <option value="flash_attn">Flash attention</option>
+                  <option value="sageattn">Sage attention</option>
+                </select>
+              </label>
+              <label>Background
+                <select id="trellisBackground">
+                  <option value="black" selected>Black</option>
+                  <option value="gray">Gray</option>
+                  <option value="white">White</option>
+                </select>
+              </label>
+              <label>Sparse steps
+                <input id="trellisSparseSteps" type="number" min="1" max="50" step="1" value="12">
+              </label>
+              <label>Shape steps
+                <input id="trellisShapeSteps" type="number" min="1" max="50" step="1" value="12">
+              </label>
+              <label>Texture steps
+                <input id="trellisTextureSteps" type="number" min="1" max="50" step="1" value="12">
+              </label>
+              <label>Guidance
+                <input id="trellisGuidance" type="number" min="1" max="20" step="0.1" value="7.5">
+              </label>
+              <label>Max tokens
+                <input id="trellisMaxTokens" type="number" min="16384" max="65536" step="4096" value="49152">
+              </label>
+              <label>Faces target
+                <input id="trellisFaces" type="number" min="10000" max="2000000" step="10000" value="500000">
+              </label>
+              <label>Texture size
+                <select id="trellisTextureSize">
+                  <option value="1024">1024</option>
+                  <option value="2048" selected>2048</option>
+                  <option value="4096">4096</option>
+                </select>
+              </label>
+              <label>Preview views
+                <input id="trellisPreviewViews" type="number" min="1" max="36" step="1" value="8">
+              </label>
+              <label>Seed
+                <input id="trellisSeed" type="number" min="-1" max="2147483647" value="-1">
+              </label>
+              <label>Output prefix
+                <input id="trellisPrefix" type="text" value="trellis2_app">
+              </label>
+              <label class="inline-check">Remesh export
+                <input id="trellisRemesh" type="checkbox" checked>
+              </label>
+            </div>
+
+            <div class="actions">
+              <button id="trellisRun" class="primary" type="submit">Generate 3D</button>
+              <label class="run-control">Runs
+                <input id="trellisRuns" type="number" min="1" max="10" step="1" value="1">
+              </label>
+              <button id="trellisRefresh" type="button">Refresh</button>
+              <button id="trellisOpenWorkflow" type="button" disabled>Open workflow</button>
+              <a id="trellisOutputLink" href="#" target="_blank" class="hidden">Open output</a>
+              <button id="trellisOpenFolder" type="button" class="hidden">Open folder</button>
+            </div>
+          </form>
+
+          <section class="result">
+            <div class="actions">
+              <span class="pill"><span id="trellisDot" class="dot"></span><span id="trellisState">Ready</span></span>
+              <span class="pill" id="trellisPromptId">No prompt</span>
+            </div>
+            <div class="preview">
+              <img id="trellisImage" alt="" class="hidden">
+              <div id="trellisPlaceholder" class="placeholder">TRELLIS.2 GLB and preview images will appear in Media.</div>
+            </div>
+            <pre id="trellisLog">Ready. TRELLIS.2 nodes are installed; the first run may download model weights.</pre>
+          </section>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-hunyuan3d" aria-label="Hunyuan3D 2.1">
+          <div class="models">
+            <div class="model-grid">
+              <article class="model-card missing">
+                <div class="tag-row"><span class="tag missing">Setup needed</span><span class="tag">3D</span><span class="tag">Local</span></div>
+                <h3>Hunyuan3D-2.1</h3>
+                <p>This PC does not currently expose Hunyuan3D Comfy nodes, so the app entry is staged but not queueable yet. Once the local node and weights are installed, this tab can become a one-click image-to-GLB/PBR workflow.</p>
+                <button type="button" data-open-model="inventory">Back to inventory</button>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-flux" aria-label="FLUX">
+          <div class="wan">
+          <form class="panel" id="fluxForm">
+            <div class="group">
+              <label>Mode
+                <select id="fluxMode">
+                  <option value="dev" selected>FLUX.1 Dev FP8</option>
+                  <option value="schnell">FLUX.1 Schnell FP8</option>
+                  <option value="kontext">FLUX Kontext edit FP8</option>
+                </select>
+              </label>
+              <label>Reference image for Kontext
+                <input id="fluxRef" type="file" accept="image/png,image/jpeg,image/webp">
+              </label>
+            </div>
+
+            <label>Prompt
+              <textarea id="fluxPrompt" rows="6"></textarea>
+            </label>
+
+            <label>Negative prompt
+              <textarea id="fluxNegative" rows="4"></textarea>
+            </label>
+
+            <div class="grid">
+              <label>Width
+                <input id="fluxWidth" type="number" min="256" max="2048" step="16" value="2048">
+              </label>
+              <label>Height
+                <input id="fluxHeight" type="number" min="256" max="2048" step="16" value="2048">
+              </label>
+              <label>Steps
+                <input id="fluxSteps" type="number" min="1" max="60" step="1" value="20">
+              </label>
+              <label>CFG
+                <input id="fluxCfg" type="number" min="0" max="12" step="0.1" value="1">
+              </label>
+              <label>Flux guidance
+                <input id="fluxGuidance" type="number" min="0" max="12" step="0.1" value="3.5">
+              </label>
+              <label>Denoise
+                <input id="fluxDenoise" type="number" min="0.05" max="1" step="0.01" value="1">
+              </label>
+              <label>Sampler
+                <select id="fluxSampler">
+                  <option value="euler" selected>Euler</option>
+                  <option value="dpmpp_2m">DPM++ 2M</option>
+                  <option value="res_multistep">Res Multistep</option>
+                </select>
+              </label>
+              <label>Scheduler
+                <select id="fluxScheduler">
+                  <option value="simple" selected>Simple</option>
+                  <option value="beta">Beta</option>
+                  <option value="normal">Normal</option>
+                </select>
+              </label>
+              <label>LoRA
+                <select id="fluxLora">
+                  <option value="" selected>None</option>
+                  <option value="FLUX.1-Turbo-Alpha.safetensors">FLUX Turbo Alpha</option>
+                  <option value="flux-arch-realism-lora_v1.safetensors">Arch Realism</option>
+                </select>
+              </label>
+              <label>LoRA strength
+                <input id="fluxLoraStrength" type="number" min="-2" max="2" step="0.05" value="0.8">
+              </label>
+              <label>Seed
+                <input id="fluxSeed" type="number" value="-1">
+              </label>
+              <label>Output prefix
+                <input id="fluxPrefix" type="text" value="flux/app">
+              </label>
+            </div>
+
+            <div class="actions">
+              <button id="fluxRun" class="primary" type="submit">Generate FLUX Image</button>
+              <label class="run-control">Runs
+                <input id="fluxRuns" type="number" min="1" max="50" step="1" value="1">
+              </label>
+              <button id="fluxRefresh" type="button">Refresh</button>
+              <button id="fluxOpenWorkflow" type="button" disabled>Open workflow</button>
+              <a id="fluxOutputLink" href="#" target="_blank" class="hidden">Open output</a>
+              <button id="fluxOpenFolder" type="button" class="hidden">Open folder</button>
+            </div>
+          </form>
+
+          <section class="result">
+            <div class="actions">
+              <span class="pill"><span id="fluxDot" class="dot"></span><span id="fluxState">Ready</span></span>
+              <span class="pill" id="fluxPromptId">No prompt</span>
+            </div>
+            <div class="preview">
+              <img id="fluxImage" alt="" class="hidden">
+              <div id="fluxPlaceholder" class="placeholder">FLUX output will appear here.</div>
+            </div>
+            <pre id="fluxLog">Ready.</pre>
+          </section>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-upscale" aria-label="SeedVR2">
+          <div class="wan">
+          <form class="panel" id="upscaleForm">
+            <label>Source video
+              <input id="upscaleSource" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,image/gif">
+            </label>
+
+            <div class="grid">
+              <label>DiT model
+                <select id="upscaleDit">
+                  <option value="seedvr2_ema_3b_fp16.safetensors" selected>3B FP16 local</option>
+                  <option value="seedvr2_ema_3b_fp8_e4m3fn.safetensors">3B FP8</option>
+                  <option value="seedvr2_ema_7b_fp8_e4m3fn_mixed_block35_fp16.safetensors">7B FP8 mixed</option>
+                </select>
+              </label>
+              <label>Target short edge
+                <input id="upscaleResolution" type="number" min="16" max="4096" step="2" value="1080">
+              </label>
+              <label>Max edge
+                <input id="upscaleMaxResolution" type="number" min="0" max="8192" step="2" value="0">
+              </label>
+              <label>Batch size 4n+1
+                <input id="upscaleBatchSize" type="number" min="1" max="65" step="4" value="5">
+              </label>
+              <label>Temporal overlap
+                <input id="upscaleOverlap" type="number" min="0" max="16" step="1" value="0">
+              </label>
+              <label>Frame cap
+                <input id="upscaleFrameCap" type="number" min="0" max="5000" step="1" value="0">
+              </label>
+              <label>Input force FPS
+                <input id="upscaleForceRate" type="number" min="0" max="60" step="1" value="0">
+              </label>
+              <label>Output FPS
+                <input id="upscaleFps" type="number" min="1" max="60" step="1" value="25">
+              </label>
+              <label>Color correction
+                <select id="upscaleColor">
+                  <option value="lab" selected>Lab</option>
+                  <option value="wavelet">Wavelet</option>
+                  <option value="wavelet_adaptive">Wavelet adaptive</option>
+                  <option value="hsv">HSV</option>
+                  <option value="adain">AdaIN</option>
+                  <option value="none">None</option>
+                </select>
+              </label>
+              <label>Blocks to swap
+                <input id="upscaleBlocks" type="number" min="0" max="36" step="1" value="0">
+              </label>
+              <label>Output format
+                <select id="upscaleOutputFormat">
+                  <option value="mp4" selected>MP4 H.264</option>
+                  <option value="mp4_10">MP4 H.264 10-bit</option>
+                  <option value="mov">MOV ProRes</option>
+                  <option value="png16">PNG sequence 16-bit</option>
+                </select>
+              </label>
+              <label>Seed
+                <input id="upscaleSeed" type="number" value="42">
+              </label>
+              <label>Output prefix
+                <input id="upscalePrefix" type="text" value="seedvr2/app">
+              </label>
+              <label class="inline-check">Uniform final batch
+                <input id="upscaleUniform" type="checkbox">
+              </label>
+            </div>
+
+            <div class="actions">
+              <button id="upscaleRun" class="primary" type="submit">Upscale Video</button>
+              <label class="run-control">Runs
+                <input id="upscaleRuns" type="number" min="1" max="20" step="1" value="1">
+              </label>
+              <button id="upscaleRefresh" type="button">Refresh</button>
+              <button id="upscaleOpenWorkflow" type="button" disabled>Open workflow</button>
+              <a id="upscaleOutputLink" href="#" target="_blank" class="hidden">Open output</a>
+              <button id="upscaleOpenFolder" type="button" class="hidden">Open folder</button>
+            </div>
+          </form>
+
+          <section class="result">
+            <div class="actions">
+              <span class="pill"><span id="upscaleDot" class="dot"></span><span id="upscaleState">Ready</span></span>
+              <span class="pill" id="upscalePromptId">No prompt</span>
+            </div>
+            <div class="preview">
+              <img id="upscaleImage" alt="" class="hidden">
+              <video id="upscaleVideo" controls class="hidden"></video>
+              <div id="upscalePlaceholder" class="placeholder">SeedVR2 output will appear here.</div>
+            </div>
+            <pre id="upscaleLog">Ready.</pre>
+          </section>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-wan" aria-label="WAN-FMLF">
+          <div class="wan">
+          <form class="panel" id="wanForm">
+            <div class="group">
+              <label>Start frame
+                <input id="wanStart" type="file" accept="image/png,image/jpeg,image/webp">
+              </label>
+              <label>End frame optional
+                <input id="wanEnd" type="file" accept="image/png,image/jpeg,image/webp">
+              </label>
+              <label>Middle frames
+                <input id="wanMiddle" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+              </label>
+              <label>Middle frame numbers
+                <input id="wanMiddleFrames" type="text" value="">
+              </label>
+            </div>
+
+            <label>Prompt
+              <textarea id="wanPrompt" rows="7"></textarea>
+            </label>
+
+            <label>Negative prompt
+              <textarea id="wanNegative" rows="5"></textarea>
+            </label>
+
+            <div class="grid">
+              <label>Duration mode
+                <select id="wanDurationMode">
+                  <option value="125" selected>5s at 25 fps</option>
+                  <option value="249">10s at 25 fps</option>
+                  <option value="501">20s at 25 fps</option>
+                  <option value="749">30s at 25 fps</option>
+                  <option value="custom">Custom frames</option>
+                </select>
+              </label>
+              <label>FPS
+                <input id="wanFps" type="number" min="8" max="30" step="1" value="25">
+              </label>
+              <label>Width
+                <input id="wanWidth" type="number" min="256" max="1280" step="16" value="1280">
+              </label>
+              <label>Height
+                <input id="wanHeight" type="number" min="256" max="1280" step="16" value="1280">
+              </label>
+              <label>Frames
+                <input id="wanFrames" type="number" min="9" max="749" step="4" value="125">
+              </label>
+              <label>Steps
+                <input id="wanSteps" type="number" min="4" max="20" step="1" value="4">
+              </label>
+              <label>CFG
+                <input id="wanCfg" type="number" min="1" max="8" step="0.1" value="1">
+              </label>
+              <label>Seed
+                <input id="wanSeed" type="number" value="-1">
+              </label>
+              <label>Output prefix
+                <input id="wanPrefix" type="text" value="wan22_flf/app">
+              </label>
+              <label>Output format
+                <select id="wanOutputFormat">
+                  <option value="mp4" selected>MP4 H.264</option>
+                  <option value="mp4_10">MP4 H.264 10-bit</option>
+                  <option value="mov">MOV ProRes</option>
+                  <option value="png16">PNG sequence 16-bit</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="actions">
+              <button id="wanRun" class="primary" type="submit">Generate WAN Video</button>
+              <label class="run-control">Runs
+                <input id="wanRuns" type="number" min="1" max="20" step="1" value="1">
+              </label>
+              <button id="wanRefresh" type="button">Refresh</button>
+              <button id="wanOpenWorkflow" type="button" disabled>Open workflow</button>
+              <a id="wanOutputLink" href="#" target="_blank" class="hidden">Open output</a>
+              <button id="wanOpenFolder" type="button" class="hidden">Open folder</button>
+            </div>
+          </form>
+
+          <section class="result">
+            <div class="actions">
+              <span class="pill"><span id="wanDot" class="dot"></span><span id="wanState">Ready</span></span>
+              <span class="pill" id="wanPromptId">No prompt</span>
+            </div>
+            <div class="preview">
+              <img id="wanImage" alt="" class="hidden">
+              <video id="wanVideo" controls class="hidden"></video>
+              <div id="wanPlaceholder" class="placeholder">WAN output will appear here.</div>
+            </div>
+            <pre id="wanLog">Ready.</pre>
+          </section>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-ati" aria-label="ATI">
+          <div class="wan">
+          <form class="panel" id="atiForm">
+            <label>Start frame
+              <input id="atiStart" type="file" accept="image/png,image/jpeg,image/webp">
+            </label>
+
+            <label>Prompt
+              <textarea id="atiPrompt" rows="6"></textarea>
+            </label>
+
+            <label>Negative prompt
+              <textarea id="atiNegative" rows="4"></textarea>
+            </label>
+
+            <div class="grid">
+              <label>Duration mode
+                <select id="atiDurationMode">
+                  <option value="125" selected>5s at 25 fps</option>
+                  <option value="249">10s at 25 fps</option>
+                  <option value="501">20s at 25 fps</option>
+                  <option value="749">30s at 25 fps</option>
+                  <option value="custom">Custom frames</option>
+                </select>
+              </label>
+              <label>FPS
+                <input id="atiFps" type="number" min="8" max="30" step="1" value="25">
+              </label>
+              <label>Width
+                <input id="atiWidth" type="number" min="256" max="1280" step="16" value="1280">
+              </label>
+              <label>Height
+                <input id="atiHeight" type="number" min="256" max="1280" step="16" value="1280">
+              </label>
+              <label>Frames
+                <input id="atiFrames" type="number" min="9" max="749" step="4" value="125">
+              </label>
+              <label>Steps
+                <input id="atiSteps" type="number" min="4" max="30" step="1" value="15">
+              </label>
+              <label>CFG
+                <input id="atiCfg" type="number" min="0.5" max="8" step="0.1" value="1">
+              </label>
+              <label>Seed
+                <input id="atiSeed" type="number" value="-1">
+              </label>
+              <label>Start X
+                <input id="atiStartX" type="number" min="0" max="2048" step="1" value="416">
+              </label>
+              <label>Start Y
+                <input id="atiStartY" type="number" min="0" max="2048" step="1" value="240">
+              </label>
+              <label>End X
+                <input id="atiEndX" type="number" min="0" max="2048" step="1" value="560">
+              </label>
+              <label>End Y
+                <input id="atiEndY" type="number" min="0" max="2048" step="1" value="240">
+              </label>
+              <label>Temperature
+                <input id="atiTemperature" type="number" min="0" max="1000" step="1" value="850">
+              </label>
+              <label>Top K
+                <input id="atiTopK" type="number" min="1" max="10" step="1" value="2">
+              </label>
+              <label>Block swap
+                <input id="atiBlockSwap" type="number" min="0" max="40" step="1" value="20">
+              </label>
+              <label>Output prefix
+                <input id="atiPrefix" type="text" value="wan21_ati/app">
+              </label>
+            </div>
+
+            <label>Track JSON
+              <textarea id="atiTracks" rows="4"></textarea>
+            </label>
+
+            <div class="actions">
+              <button id="atiRun" class="primary" type="submit">Generate ATI Video</button>
+              <label class="run-control">Runs
+                <input id="atiRuns" type="number" min="1" max="20" step="1" value="1">
+              </label>
+              <button id="atiRefresh" type="button">Refresh</button>
+              <button id="atiOpenWorkflow" type="button" disabled>Open workflow</button>
+              <a id="atiOutputLink" href="#" target="_blank" class="hidden">Open output</a>
+              <button id="atiOpenFolder" type="button" class="hidden">Open folder</button>
+            </div>
+          </form>
+
+          <section class="result">
+            <div class="actions">
+              <span class="pill"><span id="atiDot" class="dot"></span><span id="atiState">Ready</span></span>
+              <span class="pill" id="atiPromptId">No prompt</span>
+            </div>
+            <div class="preview">
+              <img id="atiImage" alt="" class="hidden">
+              <video id="atiVideo" controls class="hidden"></video>
+              <div id="atiPlaceholder" class="placeholder">ATI output will appear here.</div>
+            </div>
+            <pre id="atiLog">Ready.</pre>
+          </section>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-god" aria-label="God WAN22">
+          <div class="wan">
+          <form class="panel" id="godForm">
+            <div class="group">
+              <label>Start frame
+                <input id="godStart" type="file" accept="image/png,image/jpeg,image/webp">
+              </label>
+              <label>End frame optional
+                <input id="godEnd" type="file" accept="image/png,image/jpeg,image/webp">
+              </label>
+            </div>
+
+            <label>Prompt
+              <textarea id="godPrompt" rows="7"></textarea>
+            </label>
+
+            <label>Negative prompt
+              <textarea id="godNegative" rows="5"></textarea>
+            </label>
+
+            <div class="grid">
+              <label>Mode
+                <select id="godMode">
+                  <option value="auto" selected>Auto</option>
+                  <option value="t2v">Text only</option>
+                  <option value="i2v">First image</option>
+                  <option value="flf">First-last image</option>
+                </select>
+              </label>
+              <label>Duration mode
+                <select id="godDurationMode">
+                  <option value="125" selected>5s at 25 fps</option>
+                  <option value="249">10s at 25 fps</option>
+                  <option value="501">20s at 25 fps</option>
+                  <option value="749">30s at 25 fps</option>
+                  <option value="custom">Custom frames</option>
+                </select>
+              </label>
+              <label>FPS
+                <input id="godFps" type="number" min="8" max="30" step="1" value="25">
+              </label>
+              <label>Width
+                <input id="godWidth" type="number" min="256" max="1280" step="16" value="1280">
+              </label>
+              <label>Height
+                <input id="godHeight" type="number" min="256" max="1280" step="16" value="1280">
+              </label>
+              <label>Frames
+                <input id="godFrames" type="number" min="9" max="749" step="4" value="125">
+              </label>
+              <label>Steps
+                <input id="godSteps" type="number" min="4" max="40" step="1" value="30">
+              </label>
+              <label>CFG
+                <input id="godCfg" type="number" min="0.5" max="12" step="0.1" value="1">
+              </label>
+              <label>Shift
+                <input id="godShift" type="number" min="1" max="12" step="0.1" value="7">
+              </label>
+              <label>Seed
+                <input id="godSeed" type="number" value="-1">
+              </label>
+              <label>Block swap
+                <input id="godBlockSwap" type="number" min="0" max="40" step="1" value="20">
+              </label>
+              <label>Output prefix
+                <input id="godPrefix" type="text" value="god_wan22/app">
+              </label>
+              <label>Output format
+                <select id="godOutputFormat">
+                  <option value="mp4" selected>MP4 H.264</option>
+                  <option value="mp4_10">MP4 H.264 10-bit</option>
+                  <option value="mov">MOV ProRes</option>
+                  <option value="png16">PNG sequence 16-bit</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="actions">
+              <button id="godRun" class="primary" type="submit">Generate God WAN22</button>
+              <label class="run-control">Runs
+                <input id="godRuns" type="number" min="1" max="20" step="1" value="1">
+              </label>
+              <button id="godRefresh" type="button">Refresh</button>
+              <button id="godOpenWorkflow" type="button" disabled>Open workflow</button>
+              <a id="godOutputLink" href="#" target="_blank" class="hidden">Open output</a>
+              <button id="godOpenFolder" type="button" class="hidden">Open folder</button>
+            </div>
+          </form>
+
+          <section class="result">
+            <div class="actions">
+              <span class="pill"><span id="godDot" class="dot"></span><span id="godState">Ready</span></span>
+              <span class="pill" id="godPromptId">No prompt</span>
+            </div>
+            <div class="preview">
+              <img id="godImage" alt="" class="hidden">
+              <video id="godVideo" controls class="hidden"></video>
+              <div id="godPlaceholder" class="placeholder">God WAN22 output will appear here.</div>
+            </div>
+            <pre id="godLog">Ready.</pre>
+          </section>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-inventory" aria-label="Model readiness">
+          <div class="models">
+            <div class="model-grid">
+              <article class="model-card ready" data-open-model="trellis">
+                <div class="tag-row"><span class="tag ready">Nodes ready</span><span class="tag">3D</span><span class="tag">PBR</span></div>
+                <h3>TRELLIS.2</h3>
+                <p>Microsoft image-to-3D with PBR GLB export. Nodes are loaded locally; the first real generation may download missing TRELLIS.2 weights.</p>
+                <button type="button" data-open-model="trellis">Open</button>
+              </article>
+              <article class="model-card missing" data-open-model="hunyuan3d">
+                <div class="tag-row"><span class="tag missing">Setup needed</span><span class="tag">3D</span><span class="tag">PBR</span></div>
+                <h3>Hunyuan3D-2.1</h3>
+                <p>Strong local Windows 3D option, but this Comfy instance does not expose the Hunyuan3D nodes yet. The app entry is staged for install/wiring.</p>
+                <button type="button" data-open-model="hunyuan3d">Open</button>
+              </article>
+              <article class="model-card ready" data-open-model="wan">
+                <div class="tag-row"><span class="tag ready">Ready</span><span class="tag">Video</span></div>
+                <h3>WAN 2.2 I2V / FLF2V / T2V</h3>
+                <p>WAN-FMLF and God WAN22 are wired with the local FP8 high/low noise models, LoRAs, VAE, text encoder, queue controls, and long-video 25 fps modes.</p>
+                <button type="button" data-open-model="wan">Open</button>
+              </article>
+              <article class="model-card ready" data-open-model="ltx">
+                <div class="tag-row"><span class="tag ready">Ready</span><span class="tag">Video</span></div>
+                <h3>LTX 2.3</h3>
+                <p>The LTX 2.3 app route is available for your dev/distilled FP8 checkpoints, Gemma encoder, and LTX LoRA setup.</p>
+                <button type="button" data-open-model="ltx">Open</button>
+              </article>
+              <article class="model-card ready" data-open-model="z">
+                <div class="tag-row"><span class="tag ready">Ready</span><span class="tag">Image</span></div>
+                <h3>Z-Image Turbo</h3>
+                <p>The Z Image app route is available for the local z_image_turbo_bf16 model.</p>
+                <button type="button" data-open-model="z">Open</button>
+              </article>
+              <article class="model-card ready" data-open-model="flux">
+                <div class="tag-row"><span class="tag ready">Ready</span><span class="tag">Image</span></div>
+                <h3>FLUX.1 Dev / Schnell FP8</h3>
+                <p>The FLUX tab can generate from the local checkpoint models and optionally apply your FLUX LoRAs.</p>
+                <button type="button" data-open-model="flux">Open</button>
+              </article>
+              <article class="model-card ready" data-open-model="flux">
+                <div class="tag-row"><span class="tag ready">Ready</span><span class="tag">Edit</span></div>
+                <h3>FLUX Kontext FP8</h3>
+                <p>The FLUX tab switches to the local Kontext diffusion model when a reference image edit is selected.</p>
+                <button type="button" data-open-model="flux">Open</button>
+              </article>
+              <article class="model-card ready" data-open-model="upscale">
+                <div class="tag-row"><span class="tag ready">Ready</span><span class="tag">Upscale</span></div>
+                <h3>SeedVR2 Video Upscaler</h3>
+                <p>The SeedVR2 tab loads videos, upscales with the local 3B model, then saves MP4, 10-bit MP4, MOV, or 16-bit PNG sequences.</p>
+                <button type="button" data-open-model="upscale">Open</button>
+              </article>
+              <article class="model-card ready" data-open-model="god">
+                <div class="tag-row"><span class="tag ready">Ready</span><span class="tag">Extras</span></div>
+                <h3>WAN 2.1 / VACE / WanMove Pieces</h3>
+                <p>The installed WAN 2.1 family remains available locally for legacy/control workflows, while the active app surface focuses on WAN-FMLF and God WAN22.</p>
+                <button type="button" data-open-model="god">Open</button>
+              </article>
+              <article class="model-card missing">
+                <div class="tag-row"><span class="tag missing">Needs main model</span><span class="tag">Image</span></div>
+                <h3>Qwen-Image</h3>
+                <p>Text encoder, VAE, Lightning LoRAs, ControlNet, and nodes are present. It still needs a main Qwen diffusion model such as qwen_image_fp8_e4m3fn.safetensors before a runnable app can be queued.</p>
+              </article>
+              <article class="model-card missing">
+                <div class="tag-row"><span class="tag missing">Needs main model</span><span class="tag">Image</span></div>
+                <h3>FLUX.2 Dev / Klein</h3>
+                <p>The FLUX.2 VAE and Mistral encoder are present. The main FLUX.2 Dev or Klein weights need to be added before this can become an active workflow.</p>
+              </article>
+              <article class="model-card missing">
+                <div class="tag-row"><span class="tag missing">Needs main model</span><span class="tag">Video</span></div>
+                <h3>Hunyuan Video</h3>
+                <p>VAE and upsampler pieces are present, but the primary HunyuanVideo checkpoint was not found locally, so it is listed as pending.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="media-view hidden" id="mediaView" aria-label="Media">
+          <section class="media-subview media-library-view" id="mediaLibraryView" aria-label="Media library">
+            <div class="media-toolbar">
+              <div class="media-title">
+                <h2>Media</h2>
+                <p id="mediaRoot">Loading Comfy output folder...</p>
+              </div>
+              <div class="media-controls">
+                <input id="mediaSearch" type="search" placeholder="Search filename or folder">
+                <select id="mediaKind">
+                  <option value="all" selected>All</option>
+                  <option value="image">Images</option>
+                  <option value="video">Videos</option>
+                  <option value="model">3D Models</option>
+                </select>
+                <button id="mediaRefresh" type="button">Refresh</button>
+                <button id="mediaClear" type="button">Clear</button>
+              </div>
+              <div class="media-root-controls">
+                <input id="outputRootInput" type="text" placeholder="Output folder on the Comfy host PC">
+                <label class="inline-check" for="outputRootCreate">
+                  <input id="outputRootCreate" type="checkbox">
+                  Create
+                </label>
+                <button id="outputRootApply" type="button">Set Folder</button>
+                <button id="outputRootReset" type="button">Reset</button>
+                <p class="media-count output-root-state" id="outputRootState">LAN clients use this server path; choose a folder that exists on the Comfy host.</p>
+              </div>
+            </div>
+            <div class="media-folderbar" id="mediaFolderBar"></div>
+            <div class="media-grid" id="mediaGrid">
+              <div class="media-empty">Media will appear here.</div>
+            </div>
+            <div class="media-footer">
+              <button id="mediaLoadMore" type="button" disabled>Load more</button>
+              <span class="media-count" id="mediaCount">0 files</span>
+            </div>
+          </section>
+
+          <section class="media-subview health-view hidden" id="systemHealthView" aria-label="System health">
+            <div class="health-head">
+              <div class="media-title">
+                <h2>System Health</h2>
+                <p id="healthUpdated">Waiting for telemetry...</p>
+              </div>
+              <div class="health-actions">
+                <button id="healthRefresh" type="button">Refresh</button>
+              </div>
+            </div>
+
+            <div class="health-scroll">
+              <div class="health-grid" id="healthSummary"></div>
+              <div class="health-panels">
+                <section class="health-panel">
+                  <div class="health-panel-head">
+                    <h3>GPU VRAM</h3>
+                    <span class="health-note" id="healthGpuState">Checking</span>
+                  </div>
+                  <div class="health-list" id="healthGpuList">
+                    <div class="health-empty">No GPU data yet.</div>
+                  </div>
+                </section>
+
+                <section class="health-panel">
+                  <div class="health-panel-head">
+                    <h3>Generation Queue</h3>
+                    <span class="health-note" id="healthQueueState">Checking</span>
+                  </div>
+                  <div class="health-list" id="healthQueueList">
+                    <div class="health-empty">No queue data yet.</div>
+                  </div>
+                </section>
+
+                <section class="health-panel wide">
+                  <div class="health-panel-head">
+                    <h3>Comfy Issues & Warnings</h3>
+                    <span class="health-note" id="healthIssueCount">Checking</span>
+                  </div>
+                  <div class="issue-list" id="healthIssues">
+                    <div class="health-empty">No log data yet.</div>
+                  </div>
+                </section>
+
+                <section class="health-panel wide">
+                  <div class="health-panel-head">
+                    <h3>Host & Process</h3>
+                    <span class="health-note" id="healthProcessState">Checking</span>
+                  </div>
+                  <dl class="health-kv" id="healthProcess"></dl>
+                </section>
+
+                <section class="health-panel wide">
+                  <div class="health-panel-head">
+                    <h3>Comfy Terminal</h3>
+                    <span class="health-note" id="healthTerminalState">Checking</span>
+                  </div>
+                  <pre class="terminal-output health-terminal-output" id="healthTerminalOutput">Loading Comfy terminal...</pre>
+                </section>
+              </div>
+            </div>
+          </section>
+        </section>
+      </div>
+
+      <aside class="queue-panel" id="queuePanel" aria-label="Generation queue">
+        <div class="queue-head">
+          <h2>Generation Queue</h2>
+          <span class="pill" id="queueCount">0 jobs</span>
+        </div>
+        <div class="queue-actions">
+          <button id="queueRefresh" type="button">Refresh</button>
+          <button id="queueCancelRunning" type="button">Stop Running</button>
+          <button id="queueClearPending" type="button">Clear Upcoming</button>
+        </div>
+        <div class="queue-list" id="queueList">
+          <div class="queue-empty">Queue is empty.</div>
+        </div>
+        <section class="terminal-panel" aria-label="Comfy terminal">
+          <div class="terminal-head">
+            <h2>Comfy Terminal</h2>
+            <button id="terminalRefresh" type="button">Refresh</button>
+          </div>
+          <pre class="terminal-output" id="terminalOutput">Loading Comfy terminal...</pre>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const wanDefaults = {
+      prompt: "A cinematic first-last-frame transition with smooth camera motion, coherent subject shape, natural lighting, high detail, stable background, fluid movement.",
+      negative: "The tones are vibrant, overexposed, static, details are unclear, subtitles, style, work, painting, image, still, overall grayish, worst quality, low quality, JPEG compression artifacts, ugly, incomplete, extra fingers, poorly drawn hands, poorly drawn faces, deformed, disfigured, distorted limbs, merged fingers, motionless image, cluttered background, three legs, many people in the background, walking backwards"
+    };
+
+    const atiDefaults = {
+      prompt: "A cinematic shot with the tracked subject moving smoothly along the motion path, stable camera, natural motion blur, coherent shape, high detail.",
+      negative: wanDefaults.negative
+    };
+
+    const godDefaults = {
+      prompt: "A realistic cinematic video with strong subject motion, coherent temporal detail, natural lighting, stable background, high detail.",
+      negative: "extra fingers, sausage hands, extra digits, bland, corporate branding, stock photo, predictable, dull, bad anatomy, JPEG artefacts, text, watermark, logo, low quality, blurry, deformed, disfigured, motionless"
+    };
+
+    const fluxDefaults = {
+      prompt: "A cinematic high-detail image with natural light, strong composition, realistic materials, clean edges, and coherent fine detail.",
+      negative: "low quality, blurry, deformed, distorted, watermark, text, logo, noisy, oversharpened"
+    };
+
+    const apps = {
+      trellis: { promptId: "", outputUrl: "", outputFile: null, timer: 0, workflowRuns: [] },
+      flux: { promptId: "", outputUrl: "", outputFile: null, timer: 0, workflowRuns: [] },
+      upscale: { promptId: "", outputUrl: "", outputFile: null, timer: 0, workflowRuns: [] },
+      wan: { promptId: "", outputUrl: "", outputFile: null, timer: 0, workflowRuns: [] },
+      ati: { promptId: "", outputUrl: "", outputFile: null, timer: 0, workflowRuns: [] },
+      god: { promptId: "", outputUrl: "", outputFile: null, timer: 0, workflowRuns: [] }
+    };
+    let objectInfoCache = null;
+
+    let queueCache = { queue_running: [], queue_pending: [] };
+    let mediaSubView = "library";
+    const healthState = {
+      loading: false,
+      stats: null,
+      queue: null,
+      health: null,
+      terminal: null,
+      error: "",
+      lastUpdated: null
+    };
+    const modelCatalog = [
+      { id: "z", label: "Z Image", defaultOpen: true },
+      { id: "ltx", label: "LTX 2.3", defaultOpen: true },
+      { id: "flux", label: "FLUX", defaultOpen: true },
+      { id: "upscale", label: "SeedVR2", defaultOpen: true },
+      { id: "wan", label: "WAN-FMLF", defaultOpen: true },
+      { id: "god", label: "God WAN22", defaultOpen: true },
+      { id: "trellis", label: "TRELLIS.2", defaultOpen: true },
+      { id: "hunyuan3d", label: "Hunyuan3D", defaultOpen: true },
+      { id: "inventory", label: "Inventory", pinned: true }
+    ];
+    const modelTabs = modelCatalog.map((entry) => entry.id);
+    const modelLabels = Object.fromEntries(modelCatalog.map((entry) => [entry.id, entry.label]));
+    const tabStorageKey = "pbv-open-model-tabs-v2";
+    let activeModelTab = "z";
+    let openModelTabs = loadOpenModelTabs();
+    const mediaState = {
+      loaded: false,
+      loading: false,
+      items: [],
+      nextCursor: null,
+      total: 0,
+      root: "",
+      defaultRoot: "",
+      configuredRoot: "",
+      customRoot: false,
+      folder: "",
+      highlight: "",
+      query: "",
+      kind: "all"
+    };
+
+    $("wanPrompt").value = wanDefaults.prompt;
+    $("wanNegative").value = wanDefaults.negative;
+    $("atiPrompt").value = atiDefaults.prompt;
+    $("atiNegative").value = atiDefaults.negative;
+    $("godPrompt").value = godDefaults.prompt;
+    $("godNegative").value = godDefaults.negative;
+    $("fluxPrompt").value = fluxDefaults.prompt;
+    $("fluxNegative").value = fluxDefaults.negative;
+
+    function loadOpenModelTabs() {
+      const fallback = ["z"];
+      try {
+        const parsed = JSON.parse(localStorage.getItem(tabStorageKey) || "[]");
+        const valid = parsed.filter((id) => modelTabs.includes(id) && id !== "inventory");
+        return valid.length ? valid : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function saveOpenModelTabs() {
+      localStorage.setItem(tabStorageKey, JSON.stringify(openModelTabs));
+    }
+
+    function renderTabs() {
+      const strip = $("tabStrip");
+      const fragment = document.createDocumentFragment();
+      for (const id of openModelTabs) {
+        const tab = document.createElement("div");
+        tab.className = "tab";
+        tab.role = "button";
+        tab.tabIndex = 0;
+        tab.setAttribute("aria-selected", activeModelTab === id ? "true" : "false");
+        tab.dataset.tab = id;
+        tab.classList.toggle("active", activeModelTab === id);
+        tab.title = modelLabels[id] || id;
+
+        const label = document.createElement("span");
+        label.className = "tab-label";
+        label.textContent = modelLabels[id] || id;
+
+        const close = document.createElement("button");
+        close.type = "button";
+        close.className = "tab-close";
+        close.title = `Close ${modelLabels[id] || id}`;
+        close.setAttribute("aria-label", `Close ${modelLabels[id] || id}`);
+        close.textContent = "x";
+        close.addEventListener("click", (event) => {
+          event.stopPropagation();
+          closeModelTab(id);
+        });
+
+        tab.addEventListener("click", () => setActiveTab(id));
+        tab.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setActiveTab(id);
+          }
+        });
+        tab.append(label, close);
+        fragment.appendChild(tab);
+      }
+      strip.replaceChildren(fragment);
+      $("inventoryButton").classList.toggle("active", activeModelTab === "inventory");
+    }
+
+    function setMediaSubView(view, options = {}) {
+      const updateHash = options.updateHash !== false;
+      mediaSubView = view === "system-health" ? "system-health" : "library";
+      $("mediaLibraryView").classList.toggle("hidden", mediaSubView !== "library");
+      $("systemHealthView").classList.toggle("hidden", mediaSubView !== "system-health");
+      if (updateHash) location.hash = mediaSubView === "system-health" ? "system-health" : "media";
+      if (options.refresh === false) return;
+      if (mediaSubView === "system-health") {
+        refreshSystemHealth();
+      } else if (!mediaState.loaded && !mediaState.loading) {
+        refreshOutputRoot();
+        refreshMedia({ reset: true });
+      }
+    }
+
+    function setMainView(view, options = {}) {
+      const updateHash = options.updateHash !== false;
+      const healthActive = view === "system-health" || options.subView === "system-health";
+      const mediaActive = view === "media";
+      const utilityActive = mediaActive || healthActive;
+      if ($("mainViewSelect")) $("mainViewSelect").value = healthActive ? "system-health" : mediaActive ? "media" : "models";
+      $("modelNav").classList.toggle("hidden", utilityActive);
+      $("queuePanel").classList.toggle("hidden", utilityActive);
+      $("workspace").classList.toggle("media-active", utilityActive);
+      $("mediaView").classList.toggle("hidden", !utilityActive);
+      for (const pane of document.querySelectorAll(".pane")) {
+        pane.classList.toggle("active", !utilityActive && pane.id === `pane-${activeModelTab}`);
+      }
+      if (utilityActive) {
+        setMediaSubView(healthActive ? "system-health" : "library", { updateHash: false, refresh: false });
+      }
+      if (updateHash) location.hash = utilityActive
+        ? mediaSubView === "system-health" ? "system-health" : "media"
+        : activeModelTab;
+      if (utilityActive && mediaSubView === "system-health") {
+        refreshSystemHealth();
+      } else if (utilityActive && !mediaState.loaded && !mediaState.loading) {
+        refreshOutputRoot();
+        refreshMedia({ reset: true });
+      }
+    }
+
+    function setActiveTab(name, options = {}) {
+      activeModelTab = modelTabs.includes(name) ? name : "z";
+      if (activeModelTab !== "inventory" && !openModelTabs.includes(activeModelTab)) {
+        openModelTabs.push(activeModelTab);
+        saveOpenModelTabs();
+      }
+      renderTabs();
+      setMainView("models", options);
+    }
+
+    function openModelTab(name, options = {}) {
+      if (!modelTabs.includes(name)) return;
+      setActiveTab(name, options);
+      requestAnimationFrame(() => {
+        const tab = document.querySelector(`.tab[data-tab="${name}"]`);
+        if (tab) tab.scrollIntoView({ inline: "nearest", block: "nearest" });
+      });
+    }
+
+    function closeModelTab(name) {
+      const index = openModelTabs.indexOf(name);
+      if (index === -1) return;
+      openModelTabs.splice(index, 1);
+      saveOpenModelTabs();
+      if (activeModelTab === name) {
+        const next = openModelTabs[index] || openModelTabs[index - 1] || "inventory";
+        setActiveTab(next);
+        return;
+      }
+      renderTabs();
+    }
+
+    $("mainViewSelect").addEventListener("change", () => setMainView($("mainViewSelect").value));
+    $("healthRefresh").addEventListener("click", refreshSystemHealth);
+    $("inventoryButton").addEventListener("click", () => setActiveTab("inventory"));
+    document.addEventListener("click", (event) => {
+      const opener = event.target.closest("[data-open-model]");
+      if (!opener) return;
+      const model = opener.dataset.openModel;
+      if (!modelTabs.includes(model)) return;
+      event.preventDefault();
+      openModelTab(model);
+    });
+
+    renderTabs();
+
+    const initial = location.hash.replace("#", "");
+    if (initial === "media") {
+      setMainView("media", { updateHash: false });
+    } else if (initial === "system-health") {
+      setMainView("system-health", { updateHash: false });
+    } else if (initial === "models") {
+      setActiveTab("inventory", { updateHash: false });
+    } else if (modelTabs.includes(initial)) {
+      setActiveTab(initial, { updateHash: false });
+    } else {
+      setActiveTab("z", { updateHash: false });
+    }
+
+    async function fetchJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || data.message || response.statusText);
+      }
+      return data;
+    }
+
+    function delay(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    async function getObjectInfo() {
+      if (!objectInfoCache) objectInfoCache = await fetchJson("/object_info");
+      return objectInfoCache;
+    }
+
+    function clientUuid() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      const bytes = new Uint8Array(16);
+      if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+        window.crypto.getRandomValues(bytes);
+      } else {
+        for (let index = 0; index < bytes.length; index += 1) {
+          bytes[index] = Math.floor(Math.random() * 256);
+        }
+      }
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0"));
+      return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10, 16).join("")}`;
+    }
+
+    async function refreshComfyStatus() {
+      try {
+        const [stats, queue] = await Promise.all([
+          fetchJson("/system_stats"),
+          fetchJson("/queue")
+        ]);
+        const running = (queue.queue_running || []).length;
+        const pending = (queue.queue_pending || []).length;
+        queueCache = queue;
+        renderQueue(queue);
+        if (mediaSubView === "system-health") {
+          healthState.stats = stats;
+          healthState.queue = queue;
+          renderSystemHealth();
+        }
+        $("comfyDot").className = running || pending ? "dot busy" : "dot";
+        $("comfyState").textContent = stats.system?.comfyui_version
+          ? `Comfy ${stats.system.comfyui_version}`
+          : "Comfy online";
+        $("queueState").textContent = `${running} running / ${pending} pending`;
+      } catch (error) {
+        $("comfyDot").className = "dot error";
+        $("comfyState").textContent = "Comfy offline";
+        $("queueState").textContent = error.message;
+      }
+    }
+
+    function sortedPending(queue = queueCache) {
+      return [...(queue.queue_pending || [])].sort((a, b) => Number(a[0]) - Number(b[0]));
+    }
+
+    function runningQueue(queue = queueCache) {
+      return [...(queue.queue_running || [])].sort((a, b) => Number(a[0]) - Number(b[0]));
+    }
+
+    function shortId(id) {
+      return String(id || "").slice(0, 8);
+    }
+
+    function promptNodes(item) {
+      return item?.[2] && typeof item[2] === "object" ? Object.values(item[2]) : [];
+    }
+
+    function queueFamily(item) {
+      const nodes = promptNodes(item);
+      const classes = nodes.map((node) => node?.class_type || "");
+      const save = nodes.find((node) => node?.class_type === "SaveVideo" || node?.class_type === "SaveImage");
+      const vhs = nodes.find((node) => node?.class_type === "VHS_VideoCombine");
+      const prefixNode = save || vhs;
+      const prefix = prefixNode?.inputs?.filename_prefix ? ` -> ${prefixNode.inputs.filename_prefix}` : "";
+      const appName = item?.[3]?.app_name || item?.[3]?.app || "";
+      if (appName === "flux") return `FLUX${prefix}`;
+      if (appName === "seedvr2" || appName === "upscale") return `SeedVR2${prefix}`;
+      if (appName === "ati") return `ATI${prefix}`;
+      if (appName === "god-wan22") return `God WAN22${prefix}`;
+      if (appName === "wan-fmlf") return `WAN-FMLF${prefix}`;
+      if (classes.includes("SeedVR2VideoUpscaler")) return `SeedVR2${prefix}`;
+      if (classes.includes("ReferenceLatent") || classes.includes("FluxKontextImageScale")) return `FLUX Kontext${prefix}`;
+      if (classes.includes("CheckpointLoaderSimple") && JSON.stringify(item[2]).toLowerCase().includes("flux1-")) return `FLUX${prefix}`;
+      if (classes.includes("WanFirstLastFrameToVideo")) return `WAN 2.2${prefix}`;
+      if (classes.includes("WanImageToVideo")) return `WAN 2.2 I2V${prefix}`;
+      if (classes.includes("WanVideoATITracks")) return `ATI${prefix}`;
+      if (classes.includes("WanVideoSampler")) return `WanVideoWrapper${prefix}`;
+      if (classes.some((name) => name.startsWith("LTXV") || name === "EmptyLTXVLatentVideo")) return `LTX 2.3${prefix}`;
+      if (classes.includes("UNETLoader") && JSON.stringify(item[2]).toLowerCase().includes("z_image")) return `Z Image${prefix}`;
+      if (classes.includes("SaveImage")) return `Image${prefix}`;
+      if (classes.includes("SaveVideo") || classes.includes("CreateVideo") || classes.includes("VHS_VideoCombine")) return `Video${prefix}`;
+      return `Workflow${prefix}`;
+    }
+
+    function queuePromptText(item) {
+      const node = promptNodes(item).find((entry) => {
+        const text = entry?.inputs?.text;
+        return typeof text === "string" && text.trim();
+      });
+      const text = node?.inputs?.text?.trim() || "";
+      return text.length > 140 ? `${text.slice(0, 137)}...` : text;
+    }
+
+    function renderQueue(queue = queueCache) {
+      const running = runningQueue(queue);
+      const pending = sortedPending(queue);
+      const total = running.length + pending.length;
+      $("queueCount").textContent = `${total} ${total === 1 ? "job" : "jobs"}`;
+      $("queueCancelRunning").disabled = running.length === 0;
+      $("queueClearPending").disabled = pending.length === 0;
+
+      if (!total) {
+        $("queueList").innerHTML = '<div class="queue-empty">Queue is empty.</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      for (const item of running) {
+        fragment.appendChild(queueItemElement(item, "running"));
+      }
+      pending.forEach((item, index) => {
+        fragment.appendChild(queueItemElement(item, "pending", index, pending.length));
+      });
+      $("queueList").replaceChildren(fragment);
+    }
+
+    function queueItemElement(item, state, index = -1, count = 0) {
+      const wrapper = document.createElement("article");
+      wrapper.className = `queue-item ${state}`;
+      const promptId = item[1];
+      const number = item[0];
+
+      const title = document.createElement("div");
+      title.className = "queue-title";
+      const label = document.createElement("strong");
+      label.textContent = state === "running" ? "Running" : `Upcoming ${index + 1}`;
+      const order = document.createElement("span");
+      order.textContent = `#${number}`;
+      title.append(label, order);
+
+      const id = document.createElement("div");
+      id.className = "queue-id";
+      id.textContent = promptId;
+      id.title = promptId;
+
+      const meta = document.createElement("div");
+      meta.className = "queue-meta";
+      meta.textContent = queuePromptText(item) || queueFamily(item);
+
+      const family = document.createElement("div");
+      family.className = "queue-meta";
+      family.textContent = queueFamily(item);
+
+      const actions = document.createElement("div");
+      actions.className = "queue-actions";
+      if (state === "running") {
+        const stop = document.createElement("button");
+        stop.type = "button";
+        stop.textContent = "Stop";
+        stop.addEventListener("click", () => interruptPrompt(promptId));
+        actions.append(stop);
+      } else {
+        const up = document.createElement("button");
+        up.type = "button";
+        up.textContent = "Up";
+        up.disabled = index === 0;
+        up.addEventListener("click", () => movePending(index, index - 1));
+
+        const down = document.createElement("button");
+        down.type = "button";
+        down.textContent = "Down";
+        down.disabled = index === count - 1;
+        down.addEventListener("click", () => movePending(index, index + 1));
+
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.textContent = "Cancel";
+        cancel.addEventListener("click", () => cancelPending(promptId));
+        actions.append(up, down, cancel);
+      }
+
+      wrapper.append(title, id, family, meta, actions);
+      return wrapper;
+    }
+
+    async function postQueue(payload) {
+      const response = await fetch("/queue", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(await response.text() || response.statusText);
+    }
+
+    async function cancelPending(promptId) {
+      await postQueue({ delete: [promptId] });
+      await refreshComfyStatus();
+    }
+
+    async function interruptPrompt(promptId) {
+      await fetchJson("/interrupt", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt_id: promptId })
+      });
+      await refreshComfyStatus();
+    }
+
+    async function movePending(fromIndex, toIndex) {
+      const pending = sortedPending();
+      if (toIndex < 0 || toIndex >= pending.length || fromIndex === toIndex) return;
+      const [item] = pending.splice(fromIndex, 1);
+      pending.splice(toIndex, 0, item);
+      await postQueue({ delete: pending.map((entry) => entry[1]) });
+      for (let index = 0; index < pending.length; index += 1) {
+        const entry = pending[index];
+        await fetchJson("/prompt", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            prompt_id: entry[1],
+            prompt: entry[2],
+            extra_data: entry[3] || {},
+            number: index
+          })
+        });
+      }
+      await refreshComfyStatus();
+    }
+
+    $("queueRefresh").addEventListener("click", refreshComfyStatus);
+    $("queueClearPending").addEventListener("click", async () => {
+      await postQueue({ clear: true });
+      await refreshComfyStatus();
+    });
+    $("queueCancelRunning").addEventListener("click", async () => {
+      const running = runningQueue();
+      if (!running.length) return;
+      await interruptPrompt(running[0][1]);
+    });
+
+    const healthIssueKeywords = [
+      "error",
+      "exception",
+      "traceback",
+      "failed",
+      "failure",
+      "out of memory",
+      "oom",
+      "cuda out",
+      "warning",
+      "warn:",
+      "not found",
+      "missing",
+      "no module named",
+      "required privilege",
+      "unable to",
+      "could not"
+    ];
+    const healthErrorKeywords = [
+      "error",
+      "exception",
+      "traceback",
+      "failed",
+      "failure",
+      "out of memory",
+      "oom",
+      "cuda out"
+    ];
+
+    function healthPercent(value) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return null;
+      return Math.max(0, Math.min(100, parsed));
+    }
+
+    function healthLevel(percent) {
+      if (percent === null) return "";
+      if (percent >= 90) return "error";
+      if (percent >= 75) return "warn";
+      return "";
+    }
+
+    function appendHealthBar(parent, percent) {
+      if (percent === null) return;
+      const bar = document.createElement("div");
+      bar.className = "health-bar";
+      const fill = document.createElement("span");
+      fill.style.width = `${percent.toFixed(0)}%`;
+      bar.appendChild(fill);
+      parent.appendChild(bar);
+    }
+
+    function healthMetric(label, value, detail, percent = null) {
+      const metric = document.createElement("article");
+      metric.className = "health-metric";
+      const level = healthLevel(percent);
+      if (level) metric.classList.add(level);
+
+      const head = document.createElement("div");
+      head.className = "health-metric-head";
+      const labelNode = document.createElement("span");
+      labelNode.className = "health-label";
+      labelNode.textContent = label;
+      const valueNode = document.createElement("span");
+      valueNode.className = "health-value";
+      valueNode.textContent = value;
+      head.append(labelNode, valueNode);
+
+      const detailNode = document.createElement("div");
+      detailNode.className = "health-detail";
+      detailNode.textContent = detail;
+
+      metric.append(head, detailNode);
+      appendHealthBar(metric, percent);
+      return metric;
+    }
+
+    function clientIssueLevel(line) {
+      const lowered = String(line || "").toLowerCase();
+      if (healthErrorKeywords.some((keyword) => lowered.includes(keyword))) return "error";
+      if (lowered.includes("warning") || lowered.includes("warn")) return "warning";
+      return "notice";
+    }
+
+    function extractClientIssues(logText, limit = 120) {
+      const issues = [];
+      let source = "";
+      for (const line of cleanTerminalText(logText).split(/\r?\n/)) {
+        const text = line.trim();
+        if (!text) continue;
+        if (text === "[stdout]" || text === "[stderr]") {
+          source = text.slice(1, -1);
+          continue;
+        }
+        const lowered = text.toLowerCase();
+        if (!healthIssueKeywords.some((keyword) => lowered.includes(keyword))) continue;
+        issues.push({
+          level: clientIssueLevel(text),
+          source,
+          message: text.slice(-900)
+        });
+      }
+      return issues.slice(-limit);
+    }
+
+    function queueTotals(queue = queueCache) {
+      return {
+        running: (queue?.queue_running || []).length,
+        pending: (queue?.queue_pending || []).length
+      };
+    }
+
+    function renderSystemHealth() {
+      const stats = healthState.stats || {};
+      const system = stats.system || {};
+      const devices = Array.isArray(stats.devices) ? stats.devices : [];
+      const queue = healthState.queue || queueCache;
+      const health = healthState.health || {};
+      const host = health.host || {};
+      const totals = queueTotals(queue);
+      const statsOnline = Boolean(system.comfyui_version || devices.length || system.ram_total);
+
+      $("healthUpdated").textContent = healthState.lastUpdated
+        ? `Updated ${healthState.lastUpdated.toLocaleTimeString()}${healthState.error ? ` | ${healthState.error}` : ""}`
+        : "Waiting for telemetry...";
+
+      const ramTotal = Number(system.ram_total || host.memory_total || 0);
+      const ramFree = Number(system.ram_free || host.memory_free || 0);
+      const ramUsed = ramTotal ? Math.max(0, ramTotal - ramFree) : Number(host.memory_used || 0);
+      const ramPercent = ramTotal ? healthPercent((ramUsed / ramTotal) * 100) : healthPercent(host.memory_percent);
+
+      const firstGpu = devices[0] || {};
+      const gpuTotal = Number(firstGpu.vram_total || 0);
+      const gpuFree = Number(firstGpu.vram_free || 0);
+      const gpuUsed = gpuTotal ? Math.max(0, gpuTotal - gpuFree) : 0;
+      const gpuPercent = gpuTotal ? healthPercent((gpuUsed / gpuTotal) * 100) : null;
+      const cpuPercent = healthPercent(host.cpu_percent);
+
+      const summary = $("healthSummary");
+      summary.replaceChildren(
+        healthMetric(
+          "Comfy",
+          statsOnline ? "Online" : "Offline",
+          system.comfyui_version ? `Version ${system.comfyui_version}` : (healthState.error || "No status response yet"),
+          statsOnline ? null : 100
+        ),
+        healthMetric("Queue", `${totals.running} / ${totals.pending}`, "running / pending", null),
+        healthMetric(
+          "GPU VRAM",
+          gpuPercent === null ? "n/a" : `${gpuPercent.toFixed(0)}%`,
+          gpuTotal ? `${formatBytes(gpuUsed)} used, ${formatBytes(gpuFree)} free` : "No GPU reported by Comfy",
+          gpuPercent
+        ),
+        healthMetric(
+          "CPU",
+          cpuPercent === null ? "n/a" : `${cpuPercent.toFixed(0)}%`,
+          host.source ? `Host source: ${host.source}` : "Host route not loaded yet",
+          cpuPercent
+        ),
+        healthMetric(
+          "RAM",
+          ramPercent === null ? "n/a" : `${ramPercent.toFixed(0)}%`,
+          ramTotal ? `${formatBytes(ramUsed)} used of ${formatBytes(ramTotal)}` : "No RAM data yet",
+          ramPercent
+        )
+      );
+
+      renderHealthGpu(devices);
+      renderHealthQueue(queue);
+      renderHealthIssues(health.issues || []);
+      renderHealthProcess(stats, health);
+      renderHealthTerminal(healthState.terminal, health);
+    }
+
+    function renderHealthGpu(devices) {
+      const list = $("healthGpuList");
+      $("healthGpuState").textContent = devices.length ? `${devices.length} device${devices.length === 1 ? "" : "s"}` : "None";
+      if (!devices.length) {
+        list.innerHTML = '<div class="health-empty">No GPU data from Comfy yet.</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      devices.forEach((device, index) => {
+        const total = Number(device.vram_total || 0);
+        const free = Number(device.vram_free || 0);
+        const used = total ? Math.max(0, total - free) : 0;
+        const percent = total ? healthPercent((used / total) * 100) : null;
+        const row = document.createElement("article");
+        row.className = "health-row";
+        const level = healthLevel(percent);
+        if (level) row.classList.add(level);
+
+        const title = document.createElement("div");
+        title.className = "health-row-title";
+        const name = document.createElement("span");
+        name.textContent = device.name || `GPU ${index}`;
+        const value = document.createElement("span");
+        value.textContent = percent === null ? "n/a" : `${percent.toFixed(0)}%`;
+        title.append(name, value);
+
+        const detail = document.createElement("div");
+        detail.className = "health-detail";
+        detail.textContent = total
+          ? `${formatBytes(used)} used / ${formatBytes(total)} total, ${formatBytes(free)} free`
+          : "VRAM total unavailable";
+
+        const torch = document.createElement("div");
+        torch.className = "health-note";
+        const torchTotal = Number(device.torch_vram_total || 0);
+        const torchFree = Number(device.torch_vram_free || 0);
+        torch.textContent = torchTotal
+          ? `Torch: ${formatBytes(Math.max(0, torchTotal - torchFree))} used / ${formatBytes(torchTotal)} total`
+          : "Torch allocator data unavailable";
+
+        row.append(title, detail);
+        appendHealthBar(row, percent);
+        row.appendChild(torch);
+        fragment.appendChild(row);
+      });
+      list.replaceChildren(fragment);
+    }
+
+    function renderHealthQueue(queue) {
+      const list = $("healthQueueList");
+      const running = runningQueue(queue);
+      const pending = sortedPending(queue);
+      const total = running.length + pending.length;
+      $("healthQueueState").textContent = `${running.length} running / ${pending.length} pending`;
+      if (!total) {
+        list.innerHTML = '<div class="health-empty">Generation queue is empty.</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      const addQueueRow = (item, state, index = -1) => {
+        const row = document.createElement("article");
+        row.className = `health-row ${state === "running" ? "warn" : ""}`;
+        const title = document.createElement("div");
+        title.className = "health-row-title";
+        const label = document.createElement("span");
+        label.textContent = state === "running" ? "Running" : `Upcoming ${index + 1}`;
+        const id = document.createElement("span");
+        id.textContent = shortId(item?.[1]);
+        title.append(label, id);
+
+        const family = document.createElement("div");
+        family.className = "health-detail";
+        family.textContent = queueFamily(item);
+
+        const prompt = document.createElement("div");
+        prompt.className = "health-note";
+        prompt.textContent = queuePromptText(item) || item?.[1] || "";
+
+        row.append(title, family, prompt);
+        fragment.appendChild(row);
+      };
+      running.forEach((item) => addQueueRow(item, "running"));
+      pending.forEach((item, index) => addQueueRow(item, "pending", index));
+      list.replaceChildren(fragment);
+    }
+
+    function renderHealthIssues(issues) {
+      const list = $("healthIssues");
+      const rows = Array.isArray(issues) ? issues : [];
+      $("healthIssueCount").textContent = rows.length ? `${rows.length} recent` : "Clear";
+      if (!rows.length) {
+        const empty = document.createElement("div");
+        empty.className = "health-empty";
+        empty.textContent = healthState.error
+          ? `Log issue route unavailable. ${healthState.error}`
+          : "No recent Comfy warnings or errors in the captured logs.";
+        list.replaceChildren(empty);
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      rows.slice().reverse().slice(0, 80).forEach((issue) => {
+        const row = document.createElement("div");
+        row.className = `issue-row ${issue.level || "notice"}`;
+        const level = document.createElement("span");
+        level.className = "issue-level";
+        level.textContent = issue.level || "notice";
+        const source = document.createElement("span");
+        source.className = "issue-source";
+        source.textContent = issue.source || "log";
+        const message = document.createElement("span");
+        message.className = "issue-message";
+        message.textContent = issue.message || "";
+        row.append(level, source, message);
+        fragment.appendChild(row);
+      });
+      list.replaceChildren(fragment);
+    }
+
+    function renderHealthProcess(stats, health) {
+      const process = health.process || {};
+      const host = health.host || {};
+      const system = stats.system || {};
+      const command = health.command || process.command || (system.argv ? `python ${system.argv.join(" ")}` : "");
+      $("healthProcessState").textContent = health.route_error
+        ? "Fallback logs"
+        : health.process || health.host ? "Route ready" : "Partial";
+
+      const rows = [
+        ["Comfy process", process.running === false ? "Not found" : process.pid ? `Running, PID ${process.pid}` : "Unknown"],
+        ["Python memory", process.working_set ? formatBytes(process.working_set) : "n/a"],
+        ["CPU source", host.source || "n/a"],
+        ["Comfy log", health.log_path || "n/a"],
+        ["Error log", health.stderr_path || "n/a"],
+        ["Launch command", command || "n/a"]
+      ];
+      if (process.error) rows.splice(1, 0, ["Process query", process.error]);
+      if (health.route_error) rows.splice(0, 0, ["Health route", health.route_error]);
+
+      const dl = $("healthProcess");
+      const fragment = document.createDocumentFragment();
+      for (const [key, value] of rows) {
+        const dt = document.createElement("dt");
+        dt.textContent = key;
+        const dd = document.createElement("dd");
+        dd.textContent = value;
+        fragment.append(dt, dd);
+      }
+      dl.replaceChildren(fragment);
+    }
+
+    function terminalText(data, errorMessage = "") {
+      const lines = [
+        "$ " + (data?.command || "Comfy launch command unavailable"),
+        "",
+        data?.log_path ? `log: ${data.log_path}` : "",
+        data?.stderr_path ? `stderr: ${data.stderr_path}` : "",
+        errorMessage ? `terminal route: ${errorMessage}` : "",
+        data?.log ? cleanTerminalText(data.log).trimEnd() : "No captured Comfy stdout yet. Restart Comfy through this setup to populate the terminal log."
+      ];
+      return lines.filter(Boolean).join("\n");
+    }
+
+    function renderHealthTerminal(data, health = {}) {
+      const output = $("healthTerminalOutput");
+      if (!output) return;
+      const source = data?.log ? data : {
+        command: data?.command || health.command || "",
+        log_path: data?.log_path || health.log_path || "",
+        stderr_path: data?.stderr_path || health.stderr_path || "",
+        log: data?.log || ""
+      };
+      const errorMessage = data?.route_error || "";
+      output.textContent = terminalText(source, errorMessage);
+      output.scrollTop = output.scrollHeight;
+      $("healthTerminalState").textContent = data?.log
+        ? "Live tail"
+        : data?.route_error
+          ? "Unavailable"
+          : "Waiting";
+    }
+
+    async function refreshSystemHealth() {
+      if (healthState.loading) return;
+      healthState.loading = true;
+      $("healthRefresh").disabled = true;
+      try {
+        const terminalRequest = fetchJson("/comfy-app-switcher/api/terminal");
+        const healthRequest = fetchJson("/comfy-app-switcher/api/system-health?limit=120").catch(async (error) => {
+          const terminal = await terminalRequest.catch(() => ({}));
+          return {
+            command: terminal.command || "",
+            log_path: terminal.log_path || "",
+            stderr_path: terminal.stderr_path || "",
+            route_error: `system-health route not loaded: ${error.message}`,
+            issues: extractClientIssues(terminal.log || "", 120)
+          };
+        });
+
+        const [statsResult, queueResult, healthResult, terminalResult] = await Promise.allSettled([
+          fetchJson("/system_stats"),
+          fetchJson("/queue"),
+          healthRequest,
+          terminalRequest
+        ]);
+
+        const errors = [];
+        if (statsResult.status === "fulfilled") {
+          healthState.stats = statsResult.value;
+        } else {
+          errors.push(`stats: ${statsResult.reason?.message || statsResult.reason}`);
+        }
+        if (queueResult.status === "fulfilled") {
+          healthState.queue = queueResult.value;
+          queueCache = queueResult.value;
+          renderQueue(queueResult.value);
+        } else {
+          errors.push(`queue: ${queueResult.reason?.message || queueResult.reason}`);
+        }
+        if (healthResult.status === "fulfilled") {
+          healthState.health = healthResult.value;
+          if (healthResult.value.route_error) errors.push(healthResult.value.route_error);
+        } else {
+          errors.push(`health: ${healthResult.reason?.message || healthResult.reason}`);
+        }
+        if (terminalResult.status === "fulfilled") {
+          healthState.terminal = terminalResult.value;
+        } else {
+          healthState.terminal = { route_error: terminalResult.reason?.message || String(terminalResult.reason || "Terminal unavailable") };
+          errors.push(`terminal: ${healthState.terminal.route_error}`);
+        }
+
+        healthState.error = errors.join(" | ");
+        healthState.lastUpdated = new Date();
+        renderSystemHealth();
+      } finally {
+        healthState.loading = false;
+        $("healthRefresh").disabled = false;
+      }
+    }
+
+    async function fallbackTerminalText(errorMessage = "") {
+      const [stats, queue] = await Promise.all([
+        fetchJson("/system_stats"),
+        fetchJson("/queue")
+      ]);
+      const argv = stats.system?.argv || [];
+      const command = argv.length ? `python ${argv.join(" ")}` : "Comfy launch command unavailable";
+      const running = (queue.queue_running || []).map((entry) => `${entry[1]} ${queueFamily(entry)}`);
+      const pending = (queue.queue_pending || []).map((entry) => `${entry[1]} ${queueFamily(entry)}`);
+      return [
+        "$ " + command,
+        "",
+        errorMessage ? `terminal route: ${errorMessage}` : "terminal route: waiting for Comfy route",
+        `queue: ${running.length} running / ${pending.length} pending`,
+        "",
+        running.length ? "running:" : "",
+        ...running.map((line) => "  " + line),
+        pending.length ? "pending:" : "",
+        ...pending.map((line) => "  " + line)
+      ].filter((line) => line !== "").join("\n");
+    }
+
+    function cleanTerminalText(text) {
+      return String(text || "").replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, "");
+    }
+
+    async function refreshTerminal() {
+      try {
+        const data = await fetchJson("/comfy-app-switcher/api/terminal");
+        const lines = [
+          "$ " + (data.command || "Comfy launch command unavailable"),
+          "",
+          data.log_path ? `log: ${data.log_path}` : "",
+          data.stderr_path ? `stderr: ${data.stderr_path}` : "",
+          data.log ? cleanTerminalText(data.log).trimEnd() : "No captured Comfy stdout yet. Restart Comfy through this setup to populate the terminal log."
+        ].filter(Boolean);
+        $("terminalOutput").textContent = lines.join("\n");
+        $("terminalOutput").scrollTop = $("terminalOutput").scrollHeight;
+      } catch (error) {
+        try {
+          $("terminalOutput").textContent = await fallbackTerminalText(error.message);
+        } catch (fallbackError) {
+          $("terminalOutput").textContent = fallbackError.message;
+        }
+      }
+    }
+
+    $("terminalRefresh").addEventListener("click", refreshTerminal);
+
+    async function waitForComfyRestart(button, originalLabel) {
+      let sawOffline = false;
+      const started = Date.now();
+      for (let attempt = 0; attempt < 75; attempt += 1) {
+        await delay(1000);
+        try {
+          const response = await fetch(`/system_stats?restart_probe=${Date.now()}`, { cache: "no-store" });
+          if (response.ok && (sawOffline || Date.now() - started > 9000)) {
+            const hash = location.hash || "";
+            location.href = `${location.pathname}?bust=restart-${Date.now()}${hash}`;
+            return;
+          }
+        } catch (error) {
+          sawOffline = true;
+        }
+      }
+      button.disabled = false;
+      button.textContent = originalLabel;
+      $("comfyState").textContent = "Refresh when ready";
+      alert("Restart was launched, but Comfy did not answer yet. Refresh this page in a bit.");
+    }
+
+    $("restartComfy").addEventListener("click", async () => {
+      const running = runningQueue().length;
+      const pending = sortedPending().length;
+      const queueText = running || pending
+        ? `\n\nCurrent queue: ${running} running, ${pending} upcoming.`
+        : "";
+      if (!confirm(`Restart Comfy now? This will stop active generations and reload PBV Local AI Center.${queueText}`)) {
+        return;
+      }
+
+      const button = $("restartComfy");
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = "Restarting...";
+      $("comfyState").textContent = "Restarting";
+      try {
+        await fetchJson("/comfy-app-switcher/api/restart", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ force: true })
+        });
+        waitForComfyRestart(button, originalLabel);
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = originalLabel;
+        $("comfyState").textContent = "Restart failed";
+        alert(`Could not start restart: ${error.message}\n\nIf this says Not Found or Method Not Allowed, do one manual restart once so the new restart route can load.`);
+      }
+    });
+
+    $("clearVram").addEventListener("click", async () => {
+      $("clearVram").disabled = true;
+      try {
+        await fetchJson("/free", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ unload_models: true, free_memory: true })
+        });
+        await refreshComfyStatus();
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        $("clearVram").disabled = false;
+      }
+    });
+
+    function clampInt(value, fallback, min, max) {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isFinite(parsed)) return fallback;
+      return Math.max(min, Math.min(max, parsed));
+    }
+
+    function clampFloat(value, fallback, min, max) {
+      const parsed = Number.parseFloat(value);
+      if (!Number.isFinite(parsed)) return fallback;
+      return Math.max(min, Math.min(max, parsed));
+    }
+
+    function seedValue(value, max = Number.MAX_SAFE_INTEGER) {
+      const parsed = Number.parseInt(value, 10);
+      const upper = Math.max(1, Math.min(max, Number.MAX_SAFE_INTEGER));
+      if (Number.isFinite(parsed) && parsed >= 0) return Math.min(parsed, upper);
+      return Math.floor(Math.random() * (upper + 1));
+    }
+
+    function queueRunCount(prefix, max = 20) {
+      const field = $(`${prefix}Runs`);
+      return clampInt(field?.value, 1, 1, max);
+    }
+
+    function seedForRun(seed, index, max = Number.MAX_SAFE_INTEGER) {
+      const upper = Math.max(1, Math.min(max, Number.MAX_SAFE_INTEGER));
+      const base = Number.isFinite(seed) ? seed : seedValue(-1, upper);
+      return Math.min(upper, Math.max(0, base + index));
+    }
+
+    function wanFrameCount(value) {
+      const parsed = clampInt(value, 125, 9, 749);
+      return Math.max(9, Math.min(749, Math.round((parsed - 1) / 4) * 4 + 1));
+    }
+
+    function applyDurationMode(prefix) {
+      const value = $(`${prefix}DurationMode`).value;
+      if (value === "custom") return;
+      $(`${prefix}Fps`).value = "25";
+      $(`${prefix}Frames`).value = value;
+    }
+
+    function bindDurationControls(prefix) {
+      $(`${prefix}DurationMode`).addEventListener("change", () => applyDurationMode(prefix));
+      $(`${prefix}Frames`).addEventListener("change", () => {
+        $(`${prefix}DurationMode`).value = "custom";
+        $(`${prefix}Frames`).value = wanFrameCount($(`${prefix}Frames`).value);
+      });
+      $(`${prefix}Fps`).addEventListener("change", () => {
+        if ($(`${prefix}Fps`).value !== "25") $(`${prefix}DurationMode`).value = "custom";
+      });
+    }
+
+    ["wan", "ati", "god"].forEach(bindDurationControls);
+
+    async function uploadImage(file) {
+      const form = new FormData();
+      form.append("image", file, file.name);
+      form.append("type", "input");
+      form.append("overwrite", "false");
+      const result = await fetchJson("/upload/image", {
+        method: "POST",
+        body: form
+      });
+      return result.name || result.filename;
+    }
+
+    async function uploadVideo(file) {
+      return uploadImage(file);
+    }
+
+    function seedBatchSize(value) {
+      const parsed = clampInt(value, 5, 1, 65);
+      return Math.max(1, Math.min(65, Math.round((parsed - 1) / 4) * 4 + 1));
+    }
+
+    function negativeConditioningNode(workflow, id, clipRef, text) {
+      workflow[id] = { "class_type": "CLIPTextEncode", "inputs": { "clip": clipRef, "text": text } };
+      if (String(text || "").trim()) return [id, 0];
+      const zeroId = String(Number(id) + 1);
+      workflow[zeroId] = { "class_type": "ConditioningZeroOut", "inputs": { "conditioning": [id, 0] } };
+      return [zeroId, 0];
+    }
+
+    function buildFluxWorkflow(options) {
+      return options.mode === "kontext" ? buildFluxKontextWorkflow(options) : buildFluxCheckpointWorkflow(options);
+    }
+
+    function buildFluxCheckpointWorkflow(options) {
+      const ckpt = options.mode === "schnell"
+        ? "flux1-schnell-fp8.safetensors"
+        : "flux1-dev-fp8.safetensors";
+      const workflow = {
+        "1": { "class_type": "CheckpointLoaderSimple", "inputs": { "ckpt_name": ckpt } },
+        "2": {
+          "class_type": "ModelSamplingFlux",
+          "inputs": {
+            "model": ["1", 0],
+            "max_shift": 1.15,
+            "base_shift": 0.5,
+            "width": options.width,
+            "height": options.height
+          }
+        }
+      };
+
+      let modelRef = ["2", 0];
+      let clipRef = ["1", 1];
+      let vaeRef = ["1", 2];
+      let next = 3;
+
+      if (options.lora) {
+        const id = String(next++);
+        workflow[id] = {
+          "class_type": "LoraLoader",
+          "inputs": {
+            "model": modelRef,
+            "clip": clipRef,
+            "lora_name": options.lora,
+            "strength_model": options.loraStrength,
+            "strength_clip": options.loraStrength
+          }
+        };
+        modelRef = [id, 0];
+        clipRef = [id, 1];
+      }
+
+      const posId = String(next++);
+      workflow[posId] = { "class_type": "CLIPTextEncode", "inputs": { "clip": clipRef, "text": options.prompt } };
+      const guidanceId = String(next++);
+      workflow[guidanceId] = { "class_type": "FluxGuidance", "inputs": { "conditioning": [posId, 0], "guidance": options.guidance } };
+      const negId = String(next++);
+      const negativeRef = negativeConditioningNode(workflow, negId, clipRef, options.negative);
+      if (negativeRef[0] !== negId) next += 1;
+      const latentId = String(next++);
+      workflow[latentId] = {
+        "class_type": "EmptySD3LatentImage",
+        "inputs": { "width": options.width, "height": options.height, "batch_size": 1 }
+      };
+      const sampleId = String(next++);
+      workflow[sampleId] = {
+        "class_type": "KSampler",
+        "inputs": {
+          "model": modelRef,
+          "seed": options.seed,
+          "steps": options.steps,
+          "cfg": options.cfg,
+          "sampler_name": options.sampler,
+          "scheduler": options.scheduler,
+          "positive": [guidanceId, 0],
+          "negative": negativeRef,
+          "latent_image": [latentId, 0],
+          "denoise": options.denoise
+        }
+      };
+      const decodeId = String(next++);
+      workflow[decodeId] = { "class_type": "VAEDecode", "inputs": { "samples": [sampleId, 0], "vae": vaeRef } };
+      workflow[String(next)] = { "class_type": "SaveImage", "inputs": { "images": [decodeId, 0], "filename_prefix": options.prefix } };
+      return workflow;
+    }
+
+    function buildFluxKontextWorkflow(options) {
+      const workflow = {
+        "1": {
+          "class_type": "UNETLoader",
+          "inputs": { "unet_name": "flux1-dev-kontext_fp8_scaled.safetensors", "weight_dtype": "default" }
+        },
+        "2": {
+          "class_type": "ModelSamplingFlux",
+          "inputs": {
+            "model": ["1", 0],
+            "max_shift": 1.15,
+            "base_shift": 0.5,
+            "width": options.width,
+            "height": options.height
+          }
+        },
+        "3": {
+          "class_type": "DualCLIPLoader",
+          "inputs": {
+            "clip_name1": "clip_l.safetensors",
+            "clip_name2": "t5xxl_fp8_e4m3fn_scaled.safetensors",
+            "type": "flux",
+            "device": "default"
+          }
+        },
+        "4": { "class_type": "VAELoader", "inputs": { "vae_name": "ae.safetensors" } },
+        "5": { "class_type": "LoadImage", "inputs": { "image": options.refImage } },
+        "6": { "class_type": "FluxKontextImageScale", "inputs": { "image": ["5", 0] } },
+        "7": { "class_type": "VAEEncode", "inputs": { "pixels": ["6", 0], "vae": ["4", 0] } },
+        "8": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["3", 0], "text": options.prompt } },
+        "9": { "class_type": "FluxGuidance", "inputs": { "conditioning": ["8", 0], "guidance": options.guidance } },
+        "10": { "class_type": "ReferenceLatent", "inputs": { "conditioning": ["9", 0], "latent": ["7", 0] } }
+      };
+      const negativeRef = negativeConditioningNode(workflow, "11", ["3", 0], options.negative);
+      const sampleId = negativeRef[0] === "11" ? "12" : "13";
+      const decodeId = negativeRef[0] === "11" ? "13" : "14";
+      const saveId = negativeRef[0] === "11" ? "14" : "15";
+      workflow[sampleId] = {
+        "class_type": "KSampler",
+        "inputs": {
+          "model": ["2", 0],
+          "seed": options.seed,
+          "steps": options.steps,
+          "cfg": options.cfg,
+          "sampler_name": options.sampler,
+          "scheduler": options.scheduler,
+          "positive": ["10", 0],
+          "negative": negativeRef,
+          "latent_image": ["7", 0],
+          "denoise": options.denoise
+        }
+      };
+      workflow[decodeId] = { "class_type": "VAEDecode", "inputs": { "samples": [sampleId, 0], "vae": ["4", 0] } };
+      workflow[saveId] = { "class_type": "SaveImage", "inputs": { "images": [decodeId, 0], "filename_prefix": options.prefix } };
+      return workflow;
+    }
+
+    function buildTrellisWorkflow(options) {
+      const exportPrefix = options.prefix.replace(/[\/\\]+/g, "_").replace(/^_+|_+$/g, "") || "trellis2_app";
+      const previewPrefix = `${exportPrefix}_preview`;
+      return {
+        "1": {
+          "class_type": "LoadTrellis2Models",
+          "inputs": {
+            "resolution": options.resolution,
+            "attn_backend": options.attention,
+            "vram_mode": options.vramMode
+          }
+        },
+        "2": { "class_type": "LoadImage", "inputs": { "image": options.sourceImage } },
+        "3": { "class_type": "Trellis2RemoveBackground", "inputs": { "image": ["2", 0], "low_vram": true } },
+        "4": {
+          "class_type": "Trellis2GetConditioning",
+          "inputs": {
+            "model_config": ["1", 0],
+            "image": ["3", 0],
+            "mask": ["3", 1],
+            "include_1024": options.resolution !== "512",
+            "background_color": options.background
+          }
+        },
+        "5": {
+          "class_type": "Trellis2ImageToShape",
+          "inputs": {
+            "model_config": ["1", 0],
+            "conditioning": ["4", 0],
+            "seed": options.seed,
+            "ss_guidance_strength": options.guidance,
+            "ss_sampling_steps": options.sparseSteps,
+            "shape_guidance_strength": options.guidance,
+            "shape_sampling_steps": options.shapeSteps,
+            "max_tokens": options.maxTokens
+          }
+        },
+        "6": {
+          "class_type": "Trellis2ShapeToTexturedMesh",
+          "inputs": {
+            "model_config": ["1", 0],
+            "conditioning": ["4", 0],
+            "shape_result": ["5", 0],
+            "seed": options.seed,
+            "tex_guidance_strength": options.guidance,
+            "tex_sampling_steps": options.textureSteps
+          }
+        },
+        "7": {
+          "class_type": "Trellis2ExportGLB",
+          "inputs": {
+            "trimesh": ["6", 0],
+            "voxelgrid": ["6", 1],
+            "decimation_target": options.faces,
+            "texture_size": options.textureSize,
+            "remesh": options.remesh,
+            "filename_prefix": exportPrefix
+          }
+        },
+        "8": {
+          "class_type": "Trellis2RenderPreview",
+          "inputs": {
+            "trimesh": ["6", 0],
+            "num_views": options.previewViews,
+            "resolution": 512,
+            "render_mode": "base_color"
+          }
+        },
+        "9": { "class_type": "SaveImage", "inputs": { "images": ["8", 0], "filename_prefix": previewPrefix } }
+      };
+    }
+
+    function buildSeedVR2Workflow(options) {
+      const offloadDevice = "cpu";
+      return {
+        "1": {
+          "class_type": "VHS_LoadVideo",
+          "inputs": {
+            "video": options.video,
+            "force_rate": options.forceRate,
+            "custom_width": 0,
+            "custom_height": 0,
+            "frame_load_cap": options.frameCap,
+            "skip_first_frames": 0,
+            "select_every_nth": 1,
+            "format": "None"
+          }
+        },
+        "2": {
+          "class_type": "SeedVR2LoadDiTModel",
+          "inputs": {
+            "model": options.ditModel,
+            "device": "cuda:0",
+            "blocks_to_swap": options.blocksToSwap,
+            "swap_io_components": false,
+            "offload_device": offloadDevice,
+            "cache_model": true,
+            "attention_mode": "sdpa"
+          }
+        },
+        "3": {
+          "class_type": "SeedVR2LoadVAEModel",
+          "inputs": {
+            "model": "ema_vae_fp16.safetensors",
+            "device": "cuda:0",
+            "encode_tiled": true,
+            "encode_tile_size": 1024,
+            "encode_tile_overlap": 128,
+            "decode_tiled": true,
+            "decode_tile_size": 1024,
+            "decode_tile_overlap": 128,
+            "tile_debug": "false",
+            "offload_device": "cpu",
+            "cache_model": true
+          }
+        },
+        "4": {
+          "class_type": "SeedVR2VideoUpscaler",
+          "inputs": {
+            "image": ["1", 0],
+            "dit": ["2", 0],
+            "vae": ["3", 0],
+            "seed": options.seed,
+            "resolution": options.resolution,
+            "max_resolution": options.maxResolution,
+            "batch_size": options.batchSize,
+            "uniform_batch_size": options.uniformBatchSize,
+            "color_correction": options.colorCorrection,
+            "temporal_overlap": options.temporalOverlap,
+            "prepend_frames": 0,
+            "input_noise_scale": 0,
+            "latent_noise_scale": 0,
+            "offload_device": "cpu",
+            "enable_debug": false
+          }
+        },
+        ...vhsNode(["4", 0], options, "5")
+      };
+    }
+
+    function buildWanWorkflow(options) {
+      const hiModel = "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors";
+      const loModel = "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors";
+      const hiLora = "wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors";
+      const loLora = "wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors";
+      const split = Math.max(1, Math.floor(options.steps / 2));
+
+      return {
+        "1": { "class_type": "UNETLoader", "inputs": { "unet_name": hiModel, "weight_dtype": "default" } },
+        "2": { "class_type": "UNETLoader", "inputs": { "unet_name": loModel, "weight_dtype": "default" } },
+        "3": { "class_type": "LoraLoaderModelOnly", "inputs": { "model": ["1", 0], "lora_name": hiLora, "strength_model": 1 } },
+        "4": { "class_type": "LoraLoaderModelOnly", "inputs": { "model": ["2", 0], "lora_name": loLora, "strength_model": 1 } },
+        "5": { "class_type": "ModelSamplingSD3", "inputs": { "model": ["3", 0], "shift": 5 } },
+        "6": { "class_type": "ModelSamplingSD3", "inputs": { "model": ["4", 0], "shift": 5 } },
+        "7": { "class_type": "CLIPLoader", "inputs": { "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "type": "wan", "device": "default" } },
+        "8": { "class_type": "VAELoader", "inputs": { "vae_name": "wan_2.1_vae.safetensors" } },
+        "9": { "class_type": "LoadImage", "inputs": { "image": options.startImage } },
+        "10": { "class_type": "LoadImage", "inputs": { "image": options.endImage } },
+        "11": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["7", 0], "text": options.prompt } },
+        "12": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["7", 0], "text": options.negative } },
+        "13": {
+          "class_type": "WanFirstLastFrameToVideo",
+          "inputs": {
+            "positive": ["11", 0],
+            "negative": ["12", 0],
+            "vae": ["8", 0],
+            "start_image": ["9", 0],
+            "end_image": ["10", 0],
+            "width": options.width,
+            "height": options.height,
+            "length": options.frames,
+            "batch_size": 1
+          }
+        },
+        "14": {
+          "class_type": "KSamplerAdvanced",
+          "inputs": {
+            "model": ["5", 0],
+            "positive": ["13", 0],
+            "negative": ["13", 1],
+            "latent_image": ["13", 2],
+            "add_noise": "enable",
+            "noise_seed": options.seed,
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "start_at_step": 0,
+            "end_at_step": split,
+            "return_with_leftover_noise": "enable"
+          }
+        },
+        "15": {
+          "class_type": "KSamplerAdvanced",
+          "inputs": {
+            "model": ["6", 0],
+            "positive": ["13", 0],
+            "negative": ["13", 1],
+            "latent_image": ["14", 0],
+            "add_noise": "disable",
+            "noise_seed": 0,
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "start_at_step": split,
+            "end_at_step": options.steps,
+            "return_with_leftover_noise": "disable"
+          }
+        },
+        "16": { "class_type": "VAEDecode", "inputs": { "samples": ["15", 0], "vae": ["8", 0] } },
+        ...vhsNode(["16", 0], options, "17")
+      };
+    }
+
+    function buildWanImageWorkflow(options) {
+      const hiModel = "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors";
+      const loModel = "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors";
+      const hiLora = "wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors";
+      const loLora = "wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors";
+      const split = Math.max(1, Math.floor(options.steps / 2));
+
+      return {
+        "1": { "class_type": "UNETLoader", "inputs": { "unet_name": hiModel, "weight_dtype": "default" } },
+        "2": { "class_type": "UNETLoader", "inputs": { "unet_name": loModel, "weight_dtype": "default" } },
+        "3": { "class_type": "LoraLoaderModelOnly", "inputs": { "model": ["1", 0], "lora_name": hiLora, "strength_model": 1 } },
+        "4": { "class_type": "LoraLoaderModelOnly", "inputs": { "model": ["2", 0], "lora_name": loLora, "strength_model": 1 } },
+        "5": { "class_type": "ModelSamplingSD3", "inputs": { "model": ["3", 0], "shift": 5 } },
+        "6": { "class_type": "ModelSamplingSD3", "inputs": { "model": ["4", 0], "shift": 5 } },
+        "7": { "class_type": "CLIPLoader", "inputs": { "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "type": "wan", "device": "default" } },
+        "8": { "class_type": "VAELoader", "inputs": { "vae_name": "wan_2.1_vae.safetensors" } },
+        "9": { "class_type": "LoadImage", "inputs": { "image": options.startImage } },
+        "10": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["7", 0], "text": options.prompt } },
+        "11": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["7", 0], "text": options.negative } },
+        "12": {
+          "class_type": "WanImageToVideo",
+          "inputs": {
+            "positive": ["10", 0],
+            "negative": ["11", 0],
+            "vae": ["8", 0],
+            "start_image": ["9", 0],
+            "width": options.width,
+            "height": options.height,
+            "length": options.frames,
+            "batch_size": 1
+          }
+        },
+        "13": {
+          "class_type": "KSamplerAdvanced",
+          "inputs": {
+            "model": ["5", 0],
+            "positive": ["12", 0],
+            "negative": ["12", 1],
+            "latent_image": ["12", 2],
+            "add_noise": "enable",
+            "noise_seed": options.seed,
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "start_at_step": 0,
+            "end_at_step": split,
+            "return_with_leftover_noise": "enable"
+          }
+        },
+        "14": {
+          "class_type": "KSamplerAdvanced",
+          "inputs": {
+            "model": ["6", 0],
+            "positive": ["12", 0],
+            "negative": ["12", 1],
+            "latent_image": ["13", 0],
+            "add_noise": "disable",
+            "noise_seed": 0,
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "start_at_step": split,
+            "end_at_step": options.steps,
+            "return_with_leftover_noise": "disable"
+          }
+        },
+        "15": { "class_type": "VAEDecode", "inputs": { "samples": ["14", 0], "vae": ["8", 0] } },
+        ...vhsNode(["15", 0], options, "16")
+      };
+    }
+
+    function parseMiddleFrames(text, expectedCount, totalFrames) {
+      const values = String(text || "")
+        .split(/[,\s]+/)
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => Number.parseInt(value, 10));
+      if (values.length !== expectedCount || values.some((value) => !Number.isFinite(value))) {
+        throw new Error("Enter one middle frame number for each middle image.");
+      }
+      const sorted = [...values].sort((a, b) => a - b);
+      if (sorted.some((value, index) => value !== values[index])) {
+        throw new Error("Middle frame numbers must be in upload order.");
+      }
+      if (new Set(values).size !== values.length) {
+        throw new Error("Middle frame numbers must be unique.");
+      }
+      for (const frame of values) {
+        if (frame <= 1 || frame >= totalFrames) {
+          throw new Error(`Middle frame ${frame} must be between frame 2 and frame ${totalFrames - 1}.`);
+        }
+        if ((frame - 1) % 4 !== 0) {
+          throw new Error(`Middle frame ${frame} is not WAN-aligned. Use frame numbers 1, 5, 9, 13...`);
+        }
+      }
+      return values;
+    }
+
+    function buildWanKeyframeWorkflow(options) {
+      const hiModel = "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors";
+      const loModel = "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors";
+      const hiLora = "wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors";
+      const loLora = "wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors";
+      const split = Math.max(1, Math.floor(options.steps / 2));
+      const workflow = {
+        "1": { "class_type": "UNETLoader", "inputs": { "unet_name": hiModel, "weight_dtype": "default" } },
+        "2": { "class_type": "UNETLoader", "inputs": { "unet_name": loModel, "weight_dtype": "default" } },
+        "3": { "class_type": "LoraLoaderModelOnly", "inputs": { "model": ["1", 0], "lora_name": hiLora, "strength_model": 1 } },
+        "4": { "class_type": "LoraLoaderModelOnly", "inputs": { "model": ["2", 0], "lora_name": loLora, "strength_model": 1 } },
+        "5": { "class_type": "ModelSamplingSD3", "inputs": { "model": ["3", 0], "shift": 5 } },
+        "6": { "class_type": "ModelSamplingSD3", "inputs": { "model": ["4", 0], "shift": 5 } },
+        "7": { "class_type": "CLIPLoader", "inputs": { "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "type": "wan", "device": "default" } },
+        "8": { "class_type": "VAELoader", "inputs": { "vae_name": "wan_2.1_vae.safetensors" } },
+        "9": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["7", 0], "text": options.prompt } },
+        "10": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["7", 0], "text": options.negative } }
+      };
+
+      let nextId = 11;
+      const keyframes = options.keyframes.map((keyframe) => {
+        const id = String(nextId++);
+        workflow[id] = { "class_type": "LoadImage", "inputs": { "image": keyframe.image } };
+        return { ...keyframe, ref: [id, 0] };
+      });
+
+      let combinedRef = null;
+      for (let index = 0; index < keyframes.length - 1; index += 1) {
+        const start = keyframes[index];
+        const end = keyframes[index + 1];
+        const segmentFrames = end.frame - start.frame + 1;
+        if (segmentFrames < 5 || (segmentFrames - 1) % 4 !== 0) {
+          throw new Error(`Segment ${start.frame}-${end.frame} is not WAN-aligned.`);
+        }
+
+        const condId = String(nextId++);
+        workflow[condId] = {
+          "class_type": "WanFirstLastFrameToVideo",
+          "inputs": {
+            "positive": ["9", 0],
+            "negative": ["10", 0],
+            "vae": ["8", 0],
+            "start_image": start.ref,
+            "end_image": end.ref,
+            "width": options.width,
+            "height": options.height,
+            "length": segmentFrames,
+            "batch_size": 1
+          }
+        };
+
+        const hiId = String(nextId++);
+        workflow[hiId] = {
+          "class_type": "KSamplerAdvanced",
+          "inputs": {
+            "model": ["5", 0],
+            "positive": [condId, 0],
+            "negative": [condId, 1],
+            "latent_image": [condId, 2],
+            "add_noise": "enable",
+            "noise_seed": options.seed + index,
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "start_at_step": 0,
+            "end_at_step": split,
+            "return_with_leftover_noise": "enable"
+          }
+        };
+
+        const loId = String(nextId++);
+        workflow[loId] = {
+          "class_type": "KSamplerAdvanced",
+          "inputs": {
+            "model": ["6", 0],
+            "positive": [condId, 0],
+            "negative": [condId, 1],
+            "latent_image": [hiId, 0],
+            "add_noise": "disable",
+            "noise_seed": 0,
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "start_at_step": split,
+            "end_at_step": options.steps,
+            "return_with_leftover_noise": "disable"
+          }
+        };
+
+        const decodeId = String(nextId++);
+        workflow[decodeId] = { "class_type": "VAEDecode", "inputs": { "samples": [loId, 0], "vae": ["8", 0] } };
+        let segmentRef = [decodeId, 0];
+
+        if (index > 0) {
+          const trimId = String(nextId++);
+          workflow[trimId] = {
+            "class_type": "ImageFromBatch",
+            "inputs": {
+              "image": [decodeId, 0],
+              "batch_index": 1,
+              "length": segmentFrames - 1
+            }
+          };
+          segmentRef = [trimId, 0];
+        }
+
+        if (!combinedRef) {
+          combinedRef = segmentRef;
+        } else {
+          const batchId = String(nextId++);
+          workflow[batchId] = {
+            "class_type": "ImageBatch",
+            "inputs": {
+              "image1": combinedRef,
+              "image2": segmentRef
+            }
+          };
+          combinedRef = [batchId, 0];
+        }
+      }
+
+      Object.assign(workflow, vhsNode(combinedRef, options, String(nextId++)));
+      return workflow;
+    }
+
+    function vhsNode(imagesRef, options, nodeId = "20") {
+      const selected = options.outputFormat || "mp4";
+      const formatSettings = {
+        mp4: { "format": "video/h264-mp4", "pix_fmt": "yuv420p", "crf": 19, "save_metadata": true, "trim_to_audio": false },
+        mp4_10: { "format": "video/h264-mp4", "pix_fmt": "yuv420p10le", "crf": 19, "save_metadata": true, "trim_to_audio": false },
+        mov: { "format": "video/ProRes", "profile": "hq" },
+        png16: { "format": "video/16bit-png" }
+      }[selected] || { "format": "video/h264-mp4", "pix_fmt": "yuv420p", "crf": 19, "save_metadata": true, "trim_to_audio": false };
+
+      return {
+        [nodeId]: {
+          "class_type": "VHS_VideoCombine",
+          "inputs": {
+            "images": imagesRef,
+            "frame_rate": options.fps,
+            "loop_count": 0,
+            "filename_prefix": options.prefix,
+            "pingpong": false,
+            "save_output": true,
+            ...formatSettings
+          }
+        }
+      };
+    }
+
+    const wanWrapperTextEncoder = "umt5-xxl-enc-bf16.safetensors";
+
+    function buildWrapperBase(options, overrides = {}) {
+      const workflow = {
+        "1": {
+          "class_type": "LoadWanVideoT5TextEncoder",
+          "inputs": {
+            "model_name": overrides.textEncoder || wanWrapperTextEncoder,
+            "precision": "bf16",
+            "load_device": "offload_device",
+            "quantization": overrides.textQuantization || "disabled"
+          }
+        },
+        "2": {
+          "class_type": "WanVideoTextEncode",
+          "inputs": {
+            "t5": ["1", 0],
+            "positive_prompt": options.prompt,
+            "negative_prompt": options.negative,
+            "force_offload": true,
+            "use_disk_cache": false,
+            "device": "gpu"
+          }
+        },
+        "3": {
+          "class_type": "WanVideoVAELoader",
+          "inputs": {
+            "model_name": "wan_2.1_vae.safetensors",
+            "precision": "bf16",
+            "use_cpu_cache": false,
+            "verbose": false
+          }
+        },
+        "4": {
+          "class_type": "WanVideoBlockSwap",
+          "inputs": {
+            "blocks_to_swap": options.blockSwap,
+            "offload_img_emb": false,
+            "offload_txt_emb": false,
+            "use_non_blocking": false,
+            "vace_blocks_to_swap": 0,
+            "prefetch_blocks": 0,
+            "block_swap_debug": false
+          }
+        }
+      };
+      return workflow;
+    }
+
+    function buildAtiTrack(options) {
+      const raw = $("atiTracks").value.trim();
+      if (raw) return raw;
+      const frames = 121;
+      const track = [];
+      for (let index = 0; index < frames; index += 1) {
+        const t = frames === 1 ? 0 : index / (frames - 1);
+        track.push({
+          x: Math.round(options.startX + (options.endX - options.startX) * t),
+          y: Math.round(options.startY + (options.endY - options.startY) * t)
+        });
+      }
+      return JSON.stringify([track]);
+    }
+
+    function buildAtiWorkflow(options) {
+      const workflow = buildWrapperBase(options, {
+        textEncoder: wanWrapperTextEncoder,
+        textQuantization: "disabled"
+      });
+      Object.assign(workflow, {
+        "5": { "class_type": "LoadImage", "inputs": { "image": options.startImage } },
+        "6": { "class_type": "WanVideoLoraSelect", "inputs": { "lora": "Wan21_CausVid_14B_T2V_lora_rank32.safetensors", "strength": 1, "low_mem_load": true, "merge_loras": true } },
+        "7": {
+          "class_type": "WanVideoModelLoader",
+          "inputs": {
+            "model": "Wan2_1-I2V-ATI-14B_fp8_e4m3fn.safetensors",
+            "base_precision": "fp16_fast",
+            "quantization": "fp8_e4m3fn",
+            "load_device": "offload_device",
+            "attention_mode": "sageattn",
+            "block_swap_args": ["4", 0],
+            "lora": ["6", 0]
+          }
+        },
+        "8": {
+          "class_type": "WanVideoImageToVideoEncode",
+          "inputs": {
+            "vae": ["3", 0],
+            "start_image": ["5", 0],
+            "width": options.width,
+            "height": options.height,
+            "num_frames": options.frames,
+            "noise_aug_strength": 0,
+            "start_latent_strength": 1,
+            "end_latent_strength": 1,
+            "force_offload": true,
+            "fun_or_fl2v_model": false,
+            "tiled_vae": false
+          }
+        },
+        "9": {
+          "class_type": "WanVideoATITracks",
+          "inputs": {
+            "model": ["7", 0],
+            "tracks": options.tracks,
+            "width": options.width,
+            "height": options.height,
+            "temperature": options.temperature,
+            "topk": options.topK,
+            "start_percent": 0,
+            "end_percent": 0.2
+          }
+        },
+        "10": {
+          "class_type": "WanVideoSampler",
+          "inputs": {
+            "model": ["9", 0],
+            "image_embeds": ["8", 0],
+            "text_embeds": ["2", 0],
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "shift": 5,
+            "seed": options.seed,
+            "force_offload": true,
+            "scheduler": "unipc",
+            "riflex_freq_index": 0,
+            "denoise_strength": 1,
+            "batched_cfg": false,
+            "rope_function": "comfy"
+          }
+        },
+        "11": {
+          "class_type": "WanVideoDecode",
+          "inputs": {
+            "vae": ["3", 0],
+            "samples": ["10", 0],
+            "enable_vae_tiling": true,
+            "tile_x": 544,
+            "tile_y": 544,
+            "tile_stride_x": 288,
+            "tile_stride_y": 256,
+            "normalization": "default"
+          }
+        }
+      });
+      Object.assign(workflow, vhsNode(["11", 0], options, "12"));
+      return workflow;
+    }
+
+    function buildGodWorkflow(options) {
+      const isTextOnly = options.mode === "t2v";
+      const split = Math.max(1, Math.floor(options.steps / 2));
+      const workflow = buildWrapperBase(options, {
+        textEncoder: wanWrapperTextEncoder,
+        textQuantization: "disabled"
+      });
+
+      if (options.startImage) workflow["5"] = { "class_type": "LoadImage", "inputs": { "image": options.startImage } };
+      if (options.endImage) workflow["6"] = { "class_type": "LoadImage", "inputs": { "image": options.endImage } };
+
+      workflow["7"] = {
+        "class_type": isTextOnly ? "WanVideoEmptyEmbeds" : "WanVideoImageToVideoEncode",
+        "inputs": isTextOnly
+          ? {
+            "width": options.width,
+            "height": options.height,
+            "num_frames": options.frames
+          }
+          : {
+            "vae": ["3", 0],
+            "start_image": ["5", 0],
+            "width": options.width,
+            "height": options.height,
+            "num_frames": options.frames,
+            "noise_aug_strength": 0,
+            "start_latent_strength": 1,
+            "end_latent_strength": 1,
+            "force_offload": true,
+            "fun_or_fl2v_model": true,
+            "tiled_vae": false,
+            "augment_empty_frames": 0
+          }
+      };
+      if (!isTextOnly && options.endImage) workflow["7"].inputs.end_image = ["6", 0];
+
+      if (isTextOnly) {
+        workflow["8"] = {
+          "class_type": "WanVideoModelLoader",
+          "inputs": {
+            "model": "wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors",
+            "base_precision": "fp16",
+            "quantization": "fp8_e4m3fn_scaled",
+            "load_device": "offload_device",
+            "attention_mode": "sageattn",
+            "block_swap_args": ["4", 0],
+            "rms_norm_function": "default"
+          }
+        };
+        workflow["9"] = {
+          "class_type": "WanVideoSampler",
+          "inputs": {
+            "model": ["8", 0],
+            "image_embeds": ["7", 0],
+            "text_embeds": ["2", 0],
+            "steps": options.steps,
+            "cfg": options.cfg,
+            "shift": options.shift,
+            "seed": options.seed,
+            "force_offload": true,
+            "scheduler": "dpm++_sde",
+            "riflex_freq_index": 0,
+            "denoise_strength": 1,
+            "batched_cfg": false,
+            "rope_function": "comfy"
+          }
+        };
+        workflow["10"] = {
+          "class_type": "WanVideoDecode",
+          "inputs": {
+            "vae": ["3", 0],
+            "samples": ["9", 0],
+            "enable_vae_tiling": true,
+            "tile_x": 272,
+            "tile_y": 272,
+            "tile_stride_x": 144,
+            "tile_stride_y": 128,
+            "normalization": "default"
+          }
+        };
+        Object.assign(workflow, vhsNode(["10", 0], options, "11"));
+        return workflow;
+      }
+
+      workflow["8"] = { "class_type": "WanVideoLoraSelect", "inputs": { "lora": "wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors", "strength": 1.999, "low_mem_load": false, "merge_loras": false } };
+      workflow["9"] = { "class_type": "WanVideoLoraSelect", "inputs": { "lora": "wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors", "strength": 1, "low_mem_load": false, "merge_loras": false } };
+      workflow["10"] = {
+        "class_type": "WanVideoModelLoader",
+        "inputs": {
+          "model": "wan2.2_fun_control_high_noise_14B_fp8_scaled.safetensors",
+          "base_precision": "fp16",
+          "quantization": "fp8_e4m3fn_scaled",
+          "load_device": "offload_device",
+          "attention_mode": "sageattn",
+          "block_swap_args": ["4", 0],
+          "lora": ["8", 0],
+          "rms_norm_function": "default"
+        }
+      };
+      workflow["11"] = {
+        "class_type": "WanVideoModelLoader",
+        "inputs": {
+          "model": "wan2.2_fun_control_low_noise_14B_fp8_scaled.safetensors",
+          "base_precision": "fp16",
+          "quantization": "fp8_e4m3fn_scaled",
+          "load_device": "offload_device",
+          "attention_mode": "sageattn",
+          "block_swap_args": ["4", 0],
+          "lora": ["9", 0],
+          "rms_norm_function": "default"
+        }
+      };
+      workflow["12"] = {
+        "class_type": "WanVideoSampler",
+        "inputs": {
+          "model": ["10", 0],
+          "image_embeds": ["7", 0],
+          "text_embeds": ["2", 0],
+          "steps": options.steps,
+          "cfg": options.cfg,
+          "shift": options.shift,
+          "seed": options.seed,
+          "force_offload": true,
+          "scheduler": "dpm++_sde",
+          "riflex_freq_index": 0,
+          "denoise_strength": 1,
+          "batched_cfg": false,
+          "rope_function": "comfy",
+          "start_step": 0,
+          "end_step": split,
+          "add_noise_to_samples": false
+        }
+      };
+      workflow["13"] = {
+        "class_type": "WanVideoSampler",
+        "inputs": {
+          "model": ["11", 0],
+          "image_embeds": ["7", 0],
+          "text_embeds": ["2", 0],
+          "samples": ["12", 0],
+          "steps": options.steps,
+          "cfg": options.cfg,
+          "shift": options.shift,
+          "seed": options.seed,
+          "force_offload": true,
+          "scheduler": "dpm++_sde",
+          "riflex_freq_index": 0,
+          "denoise_strength": 1,
+          "batched_cfg": false,
+          "rope_function": "comfy",
+          "start_step": split,
+          "end_step": -1,
+          "add_noise_to_samples": false
+        }
+      };
+      workflow["14"] = {
+        "class_type": "WanVideoDecode",
+        "inputs": {
+          "vae": ["3", 0],
+          "samples": ["13", 0],
+          "enable_vae_tiling": true,
+          "tile_x": 272,
+          "tile_y": 272,
+          "tile_stride_x": 144,
+          "tile_stride_y": 128,
+          "normalization": "default"
+        }
+      };
+      Object.assign(workflow, vhsNode(["14", 0], options, "15"));
+      return workflow;
+    }
+
+    function setAppState(prefix, state, tone = "ready") {
+      $(`${prefix}State`).textContent = state;
+      $(`${prefix}Dot`).className = tone === "busy" ? "dot busy" : tone === "error" ? "dot error" : "dot";
+    }
+
+    function setSubmitBusy(prefix, busy) {
+      const button = $(`${prefix}Run`);
+      if (button) button.disabled = busy;
+    }
+
+    function logApp(prefix, lines) {
+      $(`${prefix}Log`).textContent = Array.isArray(lines) ? lines.join("\n") : lines;
+    }
+
+    function isPromptLink(value) {
+      return Array.isArray(value) && value.length === 2 && typeof value[0] === "string";
+    }
+
+    function inputTypeFromDef(definition) {
+      if (!Array.isArray(definition)) return "*";
+      if (Array.isArray(definition[0])) return "COMBO";
+      if (typeof definition[0] === "string") return definition[0];
+      return "*";
+    }
+
+    function orderedInputNames(node, nodeInfo) {
+      const names = [];
+      const push = (name) => {
+        if (name && !names.includes(name)) names.push(name);
+      };
+      for (const name of nodeInfo?.input_order?.required || []) push(name);
+      for (const name of nodeInfo?.input_order?.optional || []) push(name);
+      for (const name of Object.keys(nodeInfo?.input?.required || {})) push(name);
+      for (const name of Object.keys(nodeInfo?.input?.optional || {})) push(name);
+      for (const name of Object.keys(node.inputs || {})) push(name);
+      return names.filter((name) => Object.prototype.hasOwnProperty.call(node.inputs || {}, name));
+    }
+
+    function apiPromptDepth(prompt, nodeId, seen = new Set()) {
+      if (seen.has(nodeId)) return 0;
+      seen.add(nodeId);
+      const node = prompt[nodeId];
+      if (!node) return 0;
+      const parents = Object.values(node.inputs || {})
+        .filter(isPromptLink)
+        .map((link) => String(link[0]));
+      if (!parents.length) return 0;
+      return 1 + Math.max(...parents.map((parent) => apiPromptDepth(prompt, parent, new Set(seen))));
+    }
+
+    async function apiPromptToComfyGraph(prompt, title, rawMeta = {}) {
+      const objectInfo = await getObjectInfo().catch(() => ({}));
+      const ids = Object.keys(prompt).sort((a, b) => Number(a) - Number(b));
+      const depths = new Map(ids.map((id) => [id, apiPromptDepth(prompt, id)]));
+      const rowsByDepth = new Map();
+      const outputLinks = {};
+      const links = [];
+      let nextLinkId = 1;
+
+      for (const id of ids) {
+        const node = prompt[id];
+        const nodeInfo = objectInfo[node.class_type] || {};
+        for (const inputName of orderedInputNames(node, nodeInfo)) {
+          const value = node.inputs[inputName];
+          if (!isPromptLink(value)) continue;
+          const sourceId = String(value[0]);
+          const sourceSlot = Number(value[1]) || 0;
+          const sourceInfo = objectInfo[prompt[sourceId]?.class_type] || {};
+          const sourceType = sourceInfo.output?.[sourceSlot] || "*";
+          const toSlot = orderedInputNames(node, nodeInfo).indexOf(inputName);
+          const linkId = nextLinkId++;
+          links.push([linkId, Number(sourceId), sourceSlot, Number(id), toSlot, sourceType]);
+          outputLinks[sourceId] = outputLinks[sourceId] || {};
+          outputLinks[sourceId][sourceSlot] = outputLinks[sourceId][sourceSlot] || [];
+          outputLinks[sourceId][sourceSlot].push(linkId);
+        }
+      }
+
+      const nodes = ids.map((id) => {
+        const node = prompt[id];
+        const nodeInfo = objectInfo[node.class_type] || {};
+        const depth = depths.get(id) || 0;
+        const row = rowsByDepth.get(depth) || 0;
+        rowsByDepth.set(depth, row + 1);
+        const inputNames = orderedInputNames(node, nodeInfo);
+        const inputs = inputNames.map((name) => {
+          const value = node.inputs[name];
+          const definition = nodeInfo.input?.required?.[name] || nodeInfo.input?.optional?.[name];
+          const type = inputTypeFromDef(definition);
+          const link = links.find((item) => item[3] === Number(id) && inputNames[item[4]] === name);
+          const entry = { name, type, link: link ? link[0] : null };
+          if (!link) entry.widget = { name };
+          return entry;
+        });
+        const widgets_values = inputNames
+          .filter((name) => !isPromptLink(node.inputs[name]))
+          .map((name) => node.inputs[name]);
+        const outputs = (nodeInfo.output || ["*"]).map((type, index) => ({
+          name: nodeInfo.output_name?.[index] || String(index),
+          type,
+          slot_index: index,
+          links: outputLinks[id]?.[index] || null
+        }));
+        return {
+          id: Number(id),
+          type: node.class_type,
+          pos: [depth * 430, row * 210],
+          size: [320, 120],
+          flags: {},
+          order: ids.indexOf(id),
+          mode: 0,
+          inputs,
+          outputs,
+          properties: { "Node name for S&R": node.class_type },
+          widgets_values
+        };
+      });
+
+      return {
+        id: clientUuid(),
+        revision: 0,
+        last_node_id: Math.max(0, ...ids.map((id) => Number(id))),
+        last_link_id: Math.max(0, nextLinkId - 1),
+        nodes,
+        links,
+        groups: [],
+        config: {},
+        extra: {
+          app_switcher_title: title,
+          app_switcher_api_prompt: prompt,
+          ...rawMeta,
+          ds: { scale: 0.8, offset: [80, 80] }
+        },
+        version: 0.4
+      };
+    }
+
+    async function openAppWorkflow(prefix) {
+      const app = apps[prefix];
+      const latest = app?.workflowRuns?.[app.workflowRuns.length - 1];
+      if (!latest) return;
+      const button = $(`${prefix}OpenWorkflow`);
+      if (button) button.disabled = true;
+      try {
+        const title = `${app.workflowAppName || prefix}-${shortId(latest.prompt_id) || "workflow"}`;
+        const graph = await apiPromptToComfyGraph(latest.workflow, title, {
+          app: app.workflowAppName || prefix,
+          mode: app.workflowMode || "",
+          prompt_id: latest.prompt_id,
+          batch_run: latest.batch_run,
+          batch_runs: latest.batch_runs
+        });
+        localStorage.setItem("workflow", JSON.stringify(graph));
+        window.open("/", "_blank", "noopener");
+      } catch (error) {
+        alert(`Could not open workflow: ${error.message}`);
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    function outputFromHistory(item) {
+      const outputs = item.outputs || {};
+      const preferred = outputs["18"] || {};
+      const buckets = [preferred.images, preferred.gifs, preferred.videos];
+      for (const bucket of buckets) {
+        if (Array.isArray(bucket) && bucket.length) return bucket[0];
+      }
+      for (const value of Object.values(outputs)) {
+        for (const bucket of [value.images, value.gifs, value.videos]) {
+          if (Array.isArray(bucket) && bucket.length) return bucket[0];
+        }
+      }
+      return null;
+    }
+
+    function outputUrl(file) {
+      const params = new URLSearchParams();
+      if (file?.relative_path) {
+        params.set("path", file.relative_path);
+        return `/comfy-app-switcher/api/media-file?${params.toString()}`;
+      }
+      params.set("filename", file.filename);
+      params.set("type", file.type || "output");
+      if (file.subfolder) params.set("subfolder", file.subfolder);
+      return `/view?${params.toString()}`;
+    }
+
+    function relativeOutputPath(file) {
+      if (file?.relative_path) return file.relative_path;
+      return [file?.subfolder || "", file?.filename || ""].filter(Boolean).join("/");
+    }
+
+    function isVideoOutput(file) {
+      return /\.(mp4|m4v|mov|webm|mkv|avi|gif)$/i.test(file?.filename || "");
+    }
+
+    function formatBytes(bytes) {
+      const value = Number(bytes) || 0;
+      if (value < 1024) return `${value} B`;
+      const units = ["KB", "MB", "GB", "TB"];
+      let size = value / 1024;
+      let unitIndex = 0;
+      while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex += 1;
+      }
+      return `${size >= 100 ? size.toFixed(0) : size >= 10 ? size.toFixed(1) : size.toFixed(2)} ${units[unitIndex]}`;
+    }
+
+    function formatModified(seconds) {
+      const date = new Date(Number(seconds) * 1000);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString([], {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function mediaQueryParams(reset, forceRefresh) {
+      const params = new URLSearchParams();
+      params.set("limit", "80");
+      params.set("cursor", reset ? "0" : String(mediaState.nextCursor || 0));
+      params.set("kind", mediaState.kind || "all");
+      if (mediaState.query) params.set("q", mediaState.query);
+      if (mediaState.folder) params.set("folder", mediaState.folder);
+      if (forceRefresh) params.set("refresh", "1");
+      return params;
+    }
+
+    function renderOutputRootStatus(message = "", error = false) {
+      const state = $("outputRootState");
+      state.classList.toggle("error", error);
+      if (message) {
+        state.textContent = message;
+        return;
+      }
+      const mode = mediaState.customRoot ? "Custom output folder is active." : "Default Comfy output folder is active.";
+      state.textContent = `${mode} LAN clients use this Comfy-host path through the PBV media server.`;
+    }
+
+    function applyOutputRootData(data, options = {}) {
+      mediaState.root = data.root || mediaState.root || "";
+      mediaState.defaultRoot = data.default_root || mediaState.defaultRoot || "";
+      mediaState.configuredRoot = data.configured_root || "";
+      mediaState.customRoot = Boolean(data.custom);
+      const input = $("outputRootInput");
+      const shouldUpdateInput = options.updateInput !== false && document.activeElement !== input;
+      if (shouldUpdateInput) input.value = mediaState.root;
+      renderOutputRootStatus();
+    }
+
+    async function refreshOutputRoot(options = {}) {
+      try {
+        const data = await fetchJson("/comfy-app-switcher/api/output-root");
+        applyOutputRootData(data, options);
+      } catch (error) {
+        renderOutputRootStatus(`Output folder controls need a Comfy restart: ${error.message}`, true);
+      }
+    }
+
+    async function setOutputRoot(reset = false) {
+      const apply = $("outputRootApply");
+      const resetButton = $("outputRootReset");
+      apply.disabled = true;
+      resetButton.disabled = true;
+      try {
+        const body = reset
+          ? { reset: true }
+          : {
+              root: $("outputRootInput").value.trim(),
+              create: $("outputRootCreate").checked
+            };
+        if (!reset && !body.root) {
+          throw new Error("Enter an absolute folder path on the Comfy host PC.");
+        }
+        const data = await fetchJson("/comfy-app-switcher/api/output-root", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        applyOutputRootData(data, { updateInput: true });
+        mediaState.folder = "";
+        mediaState.highlight = "";
+        mediaState.loaded = false;
+        renderOutputRootStatus(reset ? "Output folder reset to the default Comfy output folder." : "Output folder updated. New generations will save there.");
+        await refreshMedia({ reset: true, refresh: true });
+      } catch (error) {
+        renderOutputRootStatus(`Could not change output folder: ${error.message}`, true);
+      } finally {
+        apply.disabled = false;
+        resetButton.disabled = false;
+      }
+    }
+
+    async function refreshMedia(options = {}) {
+      const reset = options.reset !== false;
+      const forceRefresh = options.refresh === true;
+      if (mediaState.loading) return;
+      mediaState.loading = true;
+      $("mediaRefresh").disabled = true;
+      $("mediaLoadMore").disabled = true;
+      if (reset) {
+        mediaState.items = [];
+        mediaState.nextCursor = null;
+      }
+      if (!mediaState.items.length) {
+        $("mediaGrid").innerHTML = '<div class="media-empty">Loading media...</div>';
+      }
+      try {
+        const data = await fetchJson(`/comfy-app-switcher/api/media?${mediaQueryParams(reset, forceRefresh)}`);
+        mediaState.loaded = true;
+        mediaState.root = data.root || "";
+        if (document.activeElement !== $("outputRootInput")) {
+          $("outputRootInput").value = mediaState.root;
+        }
+        renderOutputRootStatus();
+        mediaState.total = data.total || 0;
+        mediaState.nextCursor = data.next_cursor;
+        mediaState.items = reset ? (data.items || []) : mediaState.items.concat(data.items || []);
+        renderMedia(data.folders || []);
+      } catch (error) {
+        $("mediaGrid").innerHTML = `<div class="media-empty">Media endpoint is not ready yet.<br>${error.message}<br>Restart Comfy once after this update so the output browser route loads.</div>`;
+        $("mediaCount").textContent = "Media unavailable";
+      } finally {
+        mediaState.loading = false;
+        $("mediaRefresh").disabled = false;
+        $("mediaLoadMore").disabled = !mediaState.nextCursor;
+      }
+    }
+
+    function renderFolderButton(label, folder, active = false) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.title = folder || "All output";
+      button.classList.toggle("active", active);
+      button.addEventListener("click", () => {
+        mediaState.folder = folder;
+        mediaState.highlight = "";
+        refreshMedia({ reset: true });
+      });
+      return button;
+    }
+
+    function renderMediaFolders(folders) {
+      const bar = $("mediaFolderBar");
+      const fragment = document.createDocumentFragment();
+      fragment.appendChild(renderFolderButton("All output", "", !mediaState.folder));
+      if (mediaState.folder) {
+        fragment.appendChild(renderFolderButton(mediaState.folder, mediaState.folder, true));
+      }
+      for (const folder of folders) {
+        if (!folder.path || folder.path === mediaState.folder) continue;
+        fragment.appendChild(renderFolderButton(`${folder.path} (${folder.count})`, folder.path));
+      }
+      bar.replaceChildren(fragment);
+    }
+
+    function createMediaCard(item) {
+      const card = document.createElement("article");
+      card.className = "media-card";
+      const relativePath = relativeOutputPath(item);
+      if (mediaState.highlight && relativePath === mediaState.highlight) {
+        card.classList.add("highlight");
+      }
+
+      const thumb = document.createElement("a");
+      thumb.className = "media-thumb";
+      thumb.href = outputUrl(item);
+      thumb.target = "_blank";
+      thumb.rel = "noopener noreferrer";
+      if (item.kind === "image") {
+        const image = document.createElement("img");
+        image.alt = item.filename;
+        image.loading = "lazy";
+        image.decoding = "async";
+        image.src = outputUrl(item);
+        thumb.appendChild(image);
+      } else if (item.kind === "video") {
+        const video = document.createElement("video");
+        video.controls = true;
+        video.muted = true;
+        video.preload = "metadata";
+        video.src = outputUrl(item);
+        thumb.appendChild(video);
+      } else {
+        thumb.textContent = item.kind || "file";
+      }
+
+      const name = document.createElement("div");
+      name.className = "media-name";
+      name.textContent = item.filename;
+      name.title = relativePath;
+
+      const meta = document.createElement("div");
+      meta.className = "media-meta";
+      meta.textContent = [
+        item.subfolder || "output",
+        formatBytes(item.size),
+        formatModified(item.modified)
+      ].filter(Boolean).join("  |  ");
+      meta.title = relativePath;
+
+      const actions = document.createElement("div");
+      actions.className = "media-card-actions";
+      const open = document.createElement("a");
+      open.href = outputUrl(item);
+      open.target = "_blank";
+      open.rel = "noopener noreferrer";
+      open.textContent = "Open";
+      const folder = document.createElement("button");
+      folder.type = "button";
+      folder.textContent = "Folder";
+      folder.disabled = !item.subfolder;
+      folder.addEventListener("click", () => {
+        mediaState.folder = item.subfolder || "";
+        mediaState.highlight = relativePath;
+        refreshMedia({ reset: true });
+      });
+      actions.append(open, folder);
+
+      card.append(thumb, name, meta, actions);
+      return card;
+    }
+
+    function renderMedia(folders = []) {
+      $("mediaRoot").textContent = mediaState.root
+        ? `Published output folder: ${mediaState.root}`
+        : "Published Comfy output folder";
+      renderMediaFolders(folders);
+      $("mediaCount").textContent = mediaState.total
+        ? `Showing ${mediaState.items.length} of ${mediaState.total} files`
+        : "0 files";
+      $("mediaLoadMore").disabled = !mediaState.nextCursor;
+
+      if (!mediaState.items.length) {
+        $("mediaGrid").innerHTML = '<div class="media-empty">No media matched the current filters.</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      for (const item of mediaState.items) {
+        fragment.appendChild(createMediaCard(item));
+      }
+      $("mediaGrid").replaceChildren(fragment);
+      if (mediaState.highlight) {
+        requestAnimationFrame(() => {
+          const highlighted = document.querySelector(".media-card.highlight");
+          if (highlighted) highlighted.scrollIntoView({ block: "center" });
+        });
+      }
+    }
+
+    async function openMediaForOutput(prefix) {
+      const file = apps[prefix]?.outputFile;
+      if (!file) return;
+      const button = $(`${prefix}OpenFolder`);
+      if (button) button.disabled = true;
+      try {
+        mediaState.folder = file.subfolder || "";
+        mediaState.highlight = relativeOutputPath(file);
+        mediaState.query = "";
+        mediaState.kind = "all";
+        $("mediaSearch").value = "";
+        $("mediaKind").value = "all";
+        mediaState.loaded = true;
+        setMainView("media");
+        await refreshMedia({ reset: true, refresh: true });
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    async function pollApp(prefix) {
+      const app = apps[prefix];
+      if (!app.promptId) return;
+      try {
+        const history = await fetchJson(`/history/${app.promptId}`);
+        const item = history[app.promptId];
+        if (!item) {
+          const queue = await fetchJson("/queue");
+          const running = (queue.queue_running || []).some((entry) => entry[1] === app.promptId);
+          const pending = (queue.queue_pending || []).some((entry) => entry[1] === app.promptId);
+          setAppState(prefix, running ? "Rendering" : pending ? "Queued" : "Waiting", "busy");
+          logApp(prefix, [
+            `Prompt: ${app.promptId}`,
+            `Queue: ${running ? "running" : pending ? "pending" : "waiting"}`
+          ]);
+          return;
+        }
+
+        const status = item.status || {};
+        if (status.status_str !== "success") {
+          setAppState(prefix, "Error", "error");
+          logApp(prefix, [
+            `Prompt: ${app.promptId}`,
+            "Status:",
+            JSON.stringify(status, null, 2)
+          ]);
+          clearInterval(app.timer);
+          return;
+        }
+
+        const output = outputFromHistory(item);
+        if (!output) {
+          setAppState(prefix, "Finished", "ready");
+          logApp(prefix, [`Prompt: ${app.promptId}`, "Finished without an output in history."]);
+          clearInterval(app.timer);
+          return;
+        }
+
+        app.outputUrl = outputUrl(output);
+        app.outputFile = output;
+        const video = $(`${prefix}Video`);
+        const image = $(`${prefix}Image`);
+        if (isVideoOutput(output) && video) {
+          video.src = app.outputUrl;
+          video.classList.remove("hidden");
+          if (image) image.classList.add("hidden");
+        } else if (image) {
+          image.src = app.outputUrl;
+          image.classList.remove("hidden");
+          if (video) video.classList.add("hidden");
+        } else if (video) {
+          video.src = app.outputUrl;
+          video.classList.remove("hidden");
+        }
+        $(`${prefix}Placeholder`).classList.add("hidden");
+        $(`${prefix}OutputLink`).href = app.outputUrl;
+        $(`${prefix}OutputLink`).classList.remove("hidden");
+        $(`${prefix}OpenFolder`).classList.remove("hidden");
+        setAppState(prefix, "Finished", "ready");
+        logApp(prefix, [
+          `Prompt: ${app.promptId}`,
+          `Output: ${output.subfolder ? `${output.subfolder}/` : ""}${output.filename}`
+        ]);
+        clearInterval(app.timer);
+      } catch (error) {
+        setAppState(prefix, "Error", "error");
+        logApp(prefix, error.message);
+        clearInterval(app.timer);
+      }
+    }
+
+    function resetAppPreview(prefix) {
+      const video = $(`${prefix}Video`);
+      const image = $(`${prefix}Image`);
+      apps[prefix].outputFile = null;
+      apps[prefix].outputUrl = "";
+      if (video) {
+        video.classList.add("hidden");
+        video.removeAttribute("src");
+      }
+      if (image) {
+        image.classList.add("hidden");
+        image.removeAttribute("src");
+      }
+      $(`${prefix}Placeholder`).classList.remove("hidden");
+      $(`${prefix}OutputLink`).classList.add("hidden");
+      $(`${prefix}OpenFolder`).classList.add("hidden");
+    }
+
+    async function queueApp(prefix, workflowOrFactory, options, extraMode, runCount = 1) {
+      setAppState(prefix, "Queueing", "busy");
+      const appName = prefix === "god" ? "god-wan22" : prefix === "wan" ? "wan-fmlf" : prefix === "upscale" ? "seedvr2" : prefix === "trellis" ? "trellis2" : prefix;
+      const totalRuns = Math.max(1, runCount);
+      const promptIds = [];
+      const seeds = [];
+      const workflowRuns = [];
+      clearInterval(apps[prefix].timer);
+
+      for (let index = 0; index < totalRuns; index += 1) {
+        const runOptions = {
+          ...options,
+          seed: seedForRun(options.seed, index, options.seedMax || Number.MAX_SAFE_INTEGER),
+          runIndex: index + 1,
+          runCount: totalRuns
+        };
+        const workflow = typeof workflowOrFactory === "function"
+          ? workflowOrFactory(runOptions)
+          : workflowOrFactory;
+        const clientId = clientUuid();
+        const queued = await fetchJson("/prompt", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            client_id: clientId,
+            prompt: workflow,
+            extra_data: {
+              app: appName,
+              app_name: appName,
+              mode: extraMode,
+              batch_run: index + 1,
+              batch_runs: totalRuns,
+              duration_fps: runOptions.fps || null,
+              duration_frames: runOptions.frames || null
+            }
+          })
+        });
+        promptIds.push(queued.prompt_id);
+        seeds.push(runOptions.seed);
+        workflowRuns.push({
+          prompt_id: queued.prompt_id,
+          seed: runOptions.seed,
+          batch_run: index + 1,
+          batch_runs: totalRuns,
+          workflow
+        });
+      }
+
+      const app = apps[prefix];
+      app.promptId = promptIds[promptIds.length - 1];
+      app.workflowAppName = appName;
+      app.workflowMode = extraMode;
+      app.workflowRuns = workflowRuns;
+      const openWorkflowButton = $(`${prefix}OpenWorkflow`);
+      if (openWorkflowButton) openWorkflowButton.disabled = false;
+      $(`${prefix}PromptId`).textContent = totalRuns === 1 ? app.promptId : `${totalRuns} prompts, latest ${shortId(app.promptId)}`;
+      setAppState(prefix, totalRuns === 1 ? "Queued" : `Queued ${totalRuns}`, "busy");
+      setSubmitBusy(prefix, false);
+      const summary = options.summary || `${options.width}x${options.height}, ${options.frames} frames at ${options.fps} fps`;
+      logApp(prefix, [
+        totalRuns === 1 ? `Prompt: ${app.promptId}` : `Prompts: ${promptIds.map(shortId).join(", ")}`,
+        totalRuns === 1 ? `Seed: ${seeds[0]}` : `Seeds: ${seeds[0]} to ${seeds[seeds.length - 1]}`,
+        summary,
+        `Runs: ${totalRuns}`,
+        `Mode: ${extraMode}`
+      ]);
+      app.timer = setInterval(() => pollApp(prefix), 4000);
+      await refreshComfyStatus();
+      await pollApp(prefix);
+    }
+
+    function applyFluxModeDefaults() {
+      const mode = $("fluxMode").value;
+      if (mode === "schnell") {
+        $("fluxSteps").value = "4";
+        $("fluxGuidance").value = "0";
+        $("fluxCfg").value = "1";
+        $("fluxDenoise").value = "1";
+        $("fluxPrefix").value = "flux_schnell/app";
+      } else if (mode === "kontext") {
+        $("fluxSteps").value = "20";
+        $("fluxGuidance").value = "2.5";
+        $("fluxCfg").value = "1";
+        $("fluxDenoise").value = "1";
+        $("fluxPrefix").value = "flux_kontext/app";
+      } else {
+        $("fluxSteps").value = "20";
+        $("fluxGuidance").value = "3.5";
+        $("fluxCfg").value = "1";
+        $("fluxDenoise").value = "1";
+        $("fluxPrefix").value = "flux_dev/app";
+      }
+    }
+
+    $("fluxMode").addEventListener("change", applyFluxModeDefaults);
+    $("trellisRefresh").addEventListener("click", () => pollApp("trellis"));
+    $("fluxRefresh").addEventListener("click", () => pollApp("flux"));
+    $("upscaleRefresh").addEventListener("click", () => pollApp("upscale"));
+    $("wanRefresh").addEventListener("click", () => pollApp("wan"));
+    $("atiRefresh").addEventListener("click", () => pollApp("ati"));
+    $("godRefresh").addEventListener("click", () => pollApp("god"));
+    ["trellis", "flux", "upscale", "wan", "ati", "god"].forEach((prefix) => {
+      $(`${prefix}OpenFolder`).addEventListener("click", () => openMediaForOutput(prefix));
+      $(`${prefix}OpenWorkflow`).addEventListener("click", () => openAppWorkflow(prefix));
+    });
+
+    let mediaSearchTimer = 0;
+    $("mediaSearch").addEventListener("input", () => {
+      window.clearTimeout(mediaSearchTimer);
+      mediaSearchTimer = window.setTimeout(() => {
+        mediaState.query = $("mediaSearch").value.trim();
+        mediaState.highlight = "";
+        refreshMedia({ reset: true });
+      }, 220);
+    });
+    $("mediaKind").addEventListener("change", () => {
+      mediaState.kind = $("mediaKind").value;
+      mediaState.highlight = "";
+      refreshMedia({ reset: true });
+    });
+    $("outputRootApply").addEventListener("click", () => setOutputRoot(false));
+    $("outputRootReset").addEventListener("click", () => setOutputRoot(true));
+    $("outputRootInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        setOutputRoot(false);
+      }
+    });
+    $("mediaRefresh").addEventListener("click", () => refreshMedia({ reset: true, refresh: true }));
+    $("mediaLoadMore").addEventListener("click", () => refreshMedia({ reset: false }));
+    $("mediaClear").addEventListener("click", () => {
+      mediaState.query = "";
+      mediaState.kind = "all";
+      mediaState.folder = "";
+      mediaState.highlight = "";
+      $("mediaSearch").value = "";
+      $("mediaKind").value = "all";
+      refreshMedia({ reset: true });
+    });
+
+    $("trellisForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const sourceFile = $("trellisSource").files[0];
+      if (!sourceFile) {
+        alert("Choose a source image for TRELLIS.2.");
+        return;
+      }
+
+      setAppState("trellis", "Uploading", "busy");
+      setSubmitBusy("trellis", true);
+      resetAppPreview("trellis");
+      logApp("trellis", "Uploading source image...");
+
+      try {
+        const sourceImage = await uploadImage(sourceFile);
+        const prefix = $("trellisPrefix").value.trim() || "trellis2_app";
+        const options = {
+          sourceImage,
+          resolution: $("trellisResolution").value,
+          vramMode: $("trellisVram").value,
+          attention: $("trellisAttention").value,
+          background: $("trellisBackground").value,
+          sparseSteps: clampInt($("trellisSparseSteps").value, 12, 1, 50),
+          shapeSteps: clampInt($("trellisShapeSteps").value, 12, 1, 50),
+          textureSteps: clampInt($("trellisTextureSteps").value, 12, 1, 50),
+          guidance: clampFloat($("trellisGuidance").value, 7.5, 1, 20),
+          maxTokens: clampInt($("trellisMaxTokens").value, 49152, 16384, 65536),
+          faces: clampInt($("trellisFaces").value, 500000, 10000, 2000000),
+          textureSize: clampInt($("trellisTextureSize").value, 2048, 512, 4096),
+          previewViews: clampInt($("trellisPreviewViews").value, 8, 1, 36),
+          remesh: $("trellisRemesh").checked,
+          seed: seedValue($("trellisSeed").value, 2147483647),
+          seedMax: 2147483647,
+          prefix,
+          runs: queueRunCount("trellis", 10),
+          frames: 1,
+          fps: 0,
+          summary: `${$("trellisResolution").value}, GLB export, ${$("trellisPreviewViews").value} preview views`
+        };
+
+        logApp("trellis", [
+          `Image: ${sourceImage}`,
+          `Submitting ${options.runs} TRELLIS.2 ${options.runs === 1 ? "workflow" : "workflows"}...`,
+          "Output: GLB plus preview images in Media."
+        ]);
+        await queueApp("trellis", buildTrellisWorkflow, options, `trellis2-${options.resolution}`, options.runs);
+      } catch (error) {
+        setAppState("trellis", "Error", "error");
+        logApp("trellis", error.message);
+      } finally {
+        setSubmitBusy("trellis", false);
+      }
+    });
+
+    $("fluxForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const mode = $("fluxMode").value;
+      const refFile = $("fluxRef").files[0];
+      if (mode === "kontext" && !refFile) {
+        alert("Choose a reference image for FLUX Kontext.");
+        return;
+      }
+
+      setAppState("flux", mode === "kontext" ? "Uploading" : "Preparing", "busy");
+      setSubmitBusy("flux", true);
+      resetAppPreview("flux");
+      logApp("flux", mode === "kontext" ? "Uploading reference image..." : "Preparing FLUX workflow...");
+
+      try {
+        const refImage = refFile ? await uploadImage(refFile) : "";
+        const width = clampInt($("fluxWidth").value, 2048, 256, 2048);
+        const height = clampInt($("fluxHeight").value, 2048, 256, 2048);
+        const options = {
+          mode,
+          refImage,
+          prompt: $("fluxPrompt").value.trim() || fluxDefaults.prompt,
+          negative: $("fluxNegative").value.trim(),
+          width,
+          height,
+          steps: clampInt($("fluxSteps").value, mode === "schnell" ? 4 : 20, 1, 60),
+          cfg: clampFloat($("fluxCfg").value, 1, 0, 12),
+          guidance: clampFloat($("fluxGuidance").value, mode === "schnell" ? 0 : 3.5, 0, 12),
+          denoise: clampFloat($("fluxDenoise").value, 1, 0.05, 1),
+          sampler: $("fluxSampler").value,
+          scheduler: $("fluxScheduler").value,
+          lora: $("fluxLora").value,
+          loraStrength: clampFloat($("fluxLoraStrength").value, 0.8, -2, 2),
+          seed: seedValue($("fluxSeed").value),
+          prefix: $("fluxPrefix").value.trim() || "flux/app",
+          runs: queueRunCount("flux", 50),
+          frames: 1,
+          fps: 0,
+          summary: `${width}x${height} image`
+        };
+
+        logApp("flux", [
+          refImage ? `Reference: ${refImage}` : "Reference: none",
+          `Submitting ${options.runs} FLUX ${options.runs === 1 ? "workflow" : "workflows"}...`
+        ]);
+        await queueApp("flux", buildFluxWorkflow, options, `flux-${mode}`, options.runs);
+      } catch (error) {
+        setAppState("flux", "Error", "error");
+        logApp("flux", error.message);
+      } finally {
+        setSubmitBusy("flux", false);
+      }
+    });
+
+    $("upscaleForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const sourceFile = $("upscaleSource").files[0];
+      if (!sourceFile) {
+        alert("Choose a source video first.");
+        return;
+      }
+
+      setAppState("upscale", "Uploading", "busy");
+      setSubmitBusy("upscale", true);
+      resetAppPreview("upscale");
+      logApp("upscale", "Uploading video...");
+
+      try {
+        const video = await uploadVideo(sourceFile);
+        const batchSize = seedBatchSize($("upscaleBatchSize").value);
+        $("upscaleBatchSize").value = String(batchSize);
+        const frameCap = clampInt($("upscaleFrameCap").value, 0, 0, 5000);
+        const fps = clampInt($("upscaleFps").value, 25, 1, 60);
+        const options = {
+          video,
+          ditModel: $("upscaleDit").value,
+          resolution: clampInt($("upscaleResolution").value, 1080, 16, 4096),
+          maxResolution: clampInt($("upscaleMaxResolution").value, 0, 0, 8192),
+          batchSize,
+          temporalOverlap: clampInt($("upscaleOverlap").value, 0, 0, 16),
+          frameCap,
+          forceRate: clampFloat($("upscaleForceRate").value, 0, 0, 60),
+          colorCorrection: $("upscaleColor").value,
+          blocksToSwap: clampInt($("upscaleBlocks").value, 0, 0, 36),
+          outputFormat: $("upscaleOutputFormat").value,
+          seed: seedValue($("upscaleSeed").value),
+          fps,
+          frames: frameCap,
+          prefix: $("upscalePrefix").value.trim() || "seedvr2/app",
+          runs: queueRunCount("upscale", 20),
+          uniformBatchSize: $("upscaleUniform").checked,
+          summary: `${frameCap || "all"} frames, short edge ${$("upscaleResolution").value}px, output ${fps} fps`
+        };
+
+        logApp("upscale", [
+          `Video: ${video}`,
+          `Model: ${options.ditModel}`,
+          `Submitting ${options.runs} SeedVR2 ${options.runs === 1 ? "workflow" : "workflows"}...`
+        ]);
+        await queueApp("upscale", buildSeedVR2Workflow, options, "seedvr2-upscale", options.runs);
+      } catch (error) {
+        setAppState("upscale", "Error", "error");
+        logApp("upscale", error.message);
+      } finally {
+        setSubmitBusy("upscale", false);
+      }
+    });
+
+    $("wanForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const startFile = $("wanStart").files[0];
+      const endFile = $("wanEnd").files[0];
+      const middleFiles = Array.from($("wanMiddle").files || []);
+      if (!startFile) {
+        alert("Choose a WAN start frame first.");
+        return;
+      }
+      if (middleFiles.length && !endFile) {
+        alert("Middle frames need an end frame.");
+        return;
+      }
+
+      setAppState("wan", "Uploading", "busy");
+      setSubmitBusy("wan", true);
+      resetAppPreview("wan");
+      logApp("wan", "Uploading frames...");
+
+      try {
+        const totalFrames = wanFrameCount($("wanFrames").value);
+        const middleFrameNumbers = middleFiles.length
+          ? parseMiddleFrames($("wanMiddleFrames").value, middleFiles.length, totalFrames)
+          : [];
+        const uploads = [
+          uploadImage(startFile),
+          endFile ? uploadImage(endFile) : Promise.resolve(""),
+          ...middleFiles.map((file) => uploadImage(file))
+        ];
+        const [startImage, endImage, ...middleImages] = await Promise.all(uploads);
+
+        const options = {
+          startImage,
+          endImage,
+          prompt: $("wanPrompt").value.trim() || wanDefaults.prompt,
+          negative: $("wanNegative").value.trim() || wanDefaults.negative,
+          width: clampInt($("wanWidth").value, 1280, 256, 1280),
+          height: clampInt($("wanHeight").value, 1280, 256, 1280),
+          frames: totalFrames,
+          fps: clampInt($("wanFps").value, 25, 8, 30),
+          steps: clampInt($("wanSteps").value, 4, 4, 20),
+          cfg: clampFloat($("wanCfg").value, 1, 1, 8),
+          seed: seedValue($("wanSeed").value),
+          prefix: $("wanPrefix").value.trim() || "wan22_flf/app",
+          runs: queueRunCount("wan", 20),
+          outputFormat: $("wanOutputFormat").value
+        };
+        options.keyframes = [
+          { image: startImage, frame: 1 },
+          ...middleImages.map((image, index) => ({ image, frame: middleFrameNumbers[index] })),
+          ...(endImage ? [{ image: endImage, frame: options.frames }] : [])
+        ];
+
+        logApp("wan", [
+          `Start: ${startImage}`,
+          middleImages.length ? `Middle: ${middleImages.length} at ${middleFrameNumbers.join(", ")}` : "Middle: none",
+          endImage ? `End: ${endImage}` : "End: none, using first-image workflow",
+          `Submitting ${options.runs} WAN ${options.runs === 1 ? "workflow" : "workflows"}...`
+        ]);
+
+        const workflowMode = middleImages.length
+          ? "wan-2.2-keyframes"
+          : endImage
+            ? "wan-2.2-flf"
+            : "wan-2.2-i2v";
+
+        await queueApp(
+          "wan",
+          (runOptions) => middleImages.length
+            ? buildWanKeyframeWorkflow(runOptions)
+            : endImage
+              ? buildWanWorkflow(runOptions)
+              : buildWanImageWorkflow(runOptions),
+          options,
+          workflowMode,
+          options.runs
+        );
+      } catch (error) {
+        setAppState("wan", "Error", "error");
+        logApp("wan", error.message);
+      } finally {
+        setSubmitBusy("wan", false);
+      }
+    });
+
+    $("atiForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const startFile = $("atiStart").files[0];
+      if (!startFile) {
+        alert("Choose an ATI start frame first.");
+        return;
+      }
+
+      setAppState("ati", "Uploading", "busy");
+      setSubmitBusy("ati", true);
+      resetAppPreview("ati");
+      logApp("ati", "Uploading frame...");
+
+      try {
+        const startImage = await uploadImage(startFile);
+        const options = {
+          startImage,
+          prompt: $("atiPrompt").value.trim() || atiDefaults.prompt,
+          negative: $("atiNegative").value.trim() || atiDefaults.negative,
+          width: clampInt($("atiWidth").value, 1280, 256, 1280),
+          height: clampInt($("atiHeight").value, 1280, 256, 1280),
+          frames: wanFrameCount($("atiFrames").value),
+          fps: clampInt($("atiFps").value, 25, 8, 30),
+          steps: clampInt($("atiSteps").value, 15, 4, 30),
+          cfg: clampFloat($("atiCfg").value, 1, 0.5, 8),
+          seed: seedValue($("atiSeed").value),
+          startX: clampInt($("atiStartX").value, 416, 0, 2048),
+          startY: clampInt($("atiStartY").value, 240, 0, 2048),
+          endX: clampInt($("atiEndX").value, 560, 0, 2048),
+          endY: clampInt($("atiEndY").value, 240, 0, 2048),
+          temperature: clampFloat($("atiTemperature").value, 850, 0, 1000),
+          topK: clampInt($("atiTopK").value, 2, 1, 10),
+          blockSwap: clampInt($("atiBlockSwap").value, 20, 0, 40),
+          prefix: $("atiPrefix").value.trim() || "wan21_ati/app",
+          runs: queueRunCount("ati", 20)
+        };
+        options.tracks = buildAtiTrack(options);
+
+        logApp("ati", [
+          `Start: ${startImage}`,
+          `Submitting ${options.runs} ATI ${options.runs === 1 ? "workflow" : "workflows"}...`
+        ]);
+        await queueApp("ati", buildAtiWorkflow, options, "ati-i2v-track", options.runs);
+      } catch (error) {
+        setAppState("ati", "Error", "error");
+        logApp("ati", error.message);
+      } finally {
+        setSubmitBusy("ati", false);
+      }
+    });
+
+    $("godForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const startFile = $("godStart").files[0];
+      const endFile = $("godEnd").files[0];
+      let mode = $("godMode").value;
+      if (mode === "flf" && (!startFile || !endFile)) {
+        alert("Choose both God WAN22 frames for first-last mode.");
+        return;
+      }
+      if (mode === "i2v" && !startFile) {
+        alert("Choose a God WAN22 start frame first.");
+        return;
+      }
+      if (mode === "auto") {
+        mode = startFile && endFile ? "flf" : startFile ? "i2v" : "t2v";
+      }
+
+      setAppState("god", "Uploading", "busy");
+      setSubmitBusy("god", true);
+      resetAppPreview("god");
+      logApp("god", startFile ? "Uploading frames..." : "Preparing text-only workflow...");
+
+      try {
+        const [startImage, endImage] = await Promise.all([
+          startFile ? uploadImage(startFile) : Promise.resolve(""),
+          endFile ? uploadImage(endFile) : Promise.resolve("")
+        ]);
+        const options = {
+          mode,
+          startImage,
+          endImage: mode === "flf" ? endImage : "",
+          prompt: $("godPrompt").value.trim() || godDefaults.prompt,
+          negative: $("godNegative").value.trim() || godDefaults.negative,
+          width: clampInt($("godWidth").value, 1280, 256, 1280),
+          height: clampInt($("godHeight").value, 1280, 256, 1280),
+          frames: wanFrameCount($("godFrames").value),
+          fps: clampInt($("godFps").value, 25, 8, 30),
+          steps: clampInt($("godSteps").value, 30, 4, 40),
+          cfg: clampFloat($("godCfg").value, 1, 0.5, 12),
+          shift: clampFloat($("godShift").value, 7, 1, 12),
+          seed: seedValue($("godSeed").value),
+          blockSwap: clampInt($("godBlockSwap").value, 20, 0, 40),
+          prefix: $("godPrefix").value.trim() || "god_wan22/app",
+          runs: queueRunCount("god", 20),
+          outputFormat: $("godOutputFormat").value
+        };
+
+        logApp("god", [
+          startImage ? `Start: ${startImage}` : "Start: none",
+          options.endImage ? `End: ${options.endImage}` : "End: none",
+          `Submitting ${options.runs} God WAN22 ${options.runs === 1 ? "workflow" : "workflows"}...`
+        ]);
+        await queueApp("god", buildGodWorkflow, options, `god-wan22-${mode}`, options.runs);
+      } catch (error) {
+        setAppState("god", "Error", "error");
+        logApp("god", error.message);
+      } finally {
+        setSubmitBusy("god", false);
+      }
+    });
+
+    applyFluxModeDefaults();
+    refreshComfyStatus();
+    refreshTerminal();
+    setInterval(refreshComfyStatus, 5000);
+    setInterval(refreshTerminal, 5000);
+    setInterval(() => {
+      if (mediaSubView === "system-health" && !$("mediaView").classList.contains("hidden")) {
+        refreshSystemHealth();
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

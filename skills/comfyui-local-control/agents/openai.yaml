@@ -1,0 +1,4 @@
+interface:
+  display_name: "ComfyUI Local Control"
+  short_description: "Control this LAN ComfyUI setup"
+  default_prompt: "Use $comfyui-local-control to inspect and operate the local RTX 5090 ComfyUI setup safely."
